@@ -10,7 +10,6 @@ Tests cover:
 - Error scenarios (token exchange, userinfo, validation, database)
 """
 from unittest.mock import Mock, patch
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from django.test import TestCase, RequestFactory, override_settings

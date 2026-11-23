@@ -14,6 +14,7 @@ urlpatterns = [
     path("settings/profile/", views.edit_profile, name="edit_profile"),
     path("settings/emails/", views.edit_emails, name="edit_emails"),
     path("settings/username/", views.edit_username, name="edit_username"),
+    path("settings/communications/", views.edit_communications, name="edit_communications"),
     path("settings/cloud/", views.edit_cloud, name="edit_cloud"),
     path("settings/cloud/aws/", views.edit_cloud_aws, name="edit_cloud_aws"),
     path("settings/orcid/", views.edit_orcid, name="edit_orcid"),
@@ -52,6 +53,11 @@ urlpatterns = [
         r"^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[-0-9A-Za-z]{1,34})/$",
         views.verify_email,
         name="verify_email",
+    ),
+    path(
+        "newsletter/unsubscribe/<str:token>/",
+        views.newsletter_unsubscribe,
+        name="newsletter_unsubscribe",
     ),
     # Public user profile
     path("users/<username>/", views.public_profile, name="public_profile"),
@@ -154,6 +160,9 @@ TEST_CASES = {
     # dynamically-generated token.  Skip these URLs for now.
     "activate_user": {"uidb64": "x", "token": "x", "_skip_": True},
     "reset_password_confirm": {"uidb64": "x", "token": "x", "_skip_": True},
+    # The unsubscribe token is signed with SECRET_KEY, so it cannot be
+    # fixed here. The view is tested in user.test_views.TestNewsletter.
+    "newsletter_unsubscribe": {"token": "x", "_skip_": True},
     # Testing auth_orcid requires a mock oauth server.  Skip this URL.
     "auth_orcid": {"_skip_": True},
     "auth_orcid_login": {"_skip_": True},

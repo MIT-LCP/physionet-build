@@ -102,7 +102,7 @@
             <span class="task__icon"><i class="fa fa-key" aria-hidden="true"></i></span>
             <div class="task__body">
               <span class="task__label">Pending data use request</span>
-              <a class="task__title" href="{% url 'published_project' da_request.project.slug da_request.project.version %}">{{ da_request.project.title }}</a>
+              <a class="task__title" href="{% url 'published_project' da_request.project.slug da_request.project.version %}">{{ da_request.project.title }} <small class="text-muted">v{{ da_request.project.version }}</small></a>
               <span class="task__detail">From {{ da_request.requester.get_full_name }} &middot; {{ da_request.request_datetime|date }}</span>
             </div>
             <div class="task__action">
@@ -111,6 +111,9 @@
           </li>
         {% endfor %}
       </ul>
+      {% if data_access_requests %}
+        <p class="mt-2 text-right"><a href="{% url 'data_access_requests_inbox' %}">View all data access requests</a></p>
+      {% endif %}
 
       {% for invitation_response_form in invitation_response_formset %}
         <div class="modal fade" id="invitation-response-modal-{{ invitation_response_form.instance.id }}" tabindex="-1" role="dialog" aria-labelledby="invitation-response-title-{{ invitation_response_form.instance.id }}" aria-hidden="true">
@@ -214,6 +217,11 @@
     <div class="dashboard-section__header">
       <h2 id="published-heading">Published</h2>
       <span class="count-pill">{{ published_projects|length }}</span>
+      {% if manages_data_access %}
+        <a href="{% url 'data_access_requests_inbox' %}" class="primary-button primary-button--small primary-button--quiet ml-auto">
+          Data access requests{% if data_access_requests %} <span class="count-pill count-pill--attention">{{ data_access_requests|length }}</span>{% endif %}
+        </a>
+      {% endif %}
       <p>The latest version of each project you have published.</p>
     </div>
 

@@ -16,7 +16,7 @@ from botocore.exceptions import (
     SSLError,
 )
 from django.conf import settings
-from django.test import SimpleTestCase, TestCase, override_settings
+from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 import moto

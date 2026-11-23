@@ -1207,10 +1207,10 @@ def notify_owner_data_access_request(users, data_access_request,
                                      request_protocol, request_host):
     subject = f"{settings.SITE_NAME} New Data Access Request"
 
-    for user in users:
+    for owner in users:
         body = loader.render_to_string(
             'notification/email/notify_owner_data_access_request.html', {
-                'user': user,
+                'user': owner,
                 'data_access_request': data_access_request,
                 'signature': settings.EMAIL_SIGNATURE,
                 'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME,
@@ -1219,7 +1219,7 @@ def notify_owner_data_access_request(users, data_access_request,
             })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                  [user.email],
+                  [owner.email],
                   fail_silently=False)
 
 
@@ -1302,10 +1302,10 @@ def notify_owner_data_access_review_withdrawal(reviewer_invitation):
     subject = f"{settings.SITE_NAME} Data Request Reviewer Withdrawal"
 
     project = reviewer_invitation.project
-    for user in set([project.submitting_author().user, project.corresponding_author().user]):
+    for owner in set([project.submitting_author().user, project.corresponding_author().user]):
         body = loader.render_to_string(
             'notification/email/notify_owner_data_access_review_withdrawal.html', {
-                'owner': user,
+                'owner': owner,
                 'user': reviewer_invitation.reviewer,
                 'project': project,
                 'signature': settings.EMAIL_SIGNATURE,
@@ -1313,7 +1313,7 @@ def notify_owner_data_access_review_withdrawal(reviewer_invitation):
             })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                  [user.email],
+                  [owner.email],
                   fail_silently=False)
 
 

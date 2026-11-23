@@ -1,6 +1,7 @@
 import datetime as dt
 import logging
 import os
+from urllib.parse import urlencode
 
 import notification.utility as notification
 from dal import autocomplete
@@ -13,11 +14,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.forms import ModelForm, inlineformset_factory, modelformset_factory
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
@@ -44,7 +44,6 @@ from project.models import (
     DataAccessRequestReviewer,
     DUASignature,
     GCPLog,
-    DUA,
     Funding,
     Publication,
     PublishedAuthor,
@@ -70,7 +69,6 @@ from project.modelcomponents.review import ReviewerInvitation
 from project.authorization.access import (
     can_access_project, can_view_project_files, has_required_trainings, is_region_blocked,
 )
-from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
 from user.models import AssociatedEmail, CloudInformation, CredentialApplication, Training
@@ -82,7 +80,6 @@ from project.cloud.s3 import (
     public_s3_download_url,
     PROJECT_ZIP_FILE,
 )
-from django.db.models import F, DateTimeField, ExpressionWrapper
 from user.awsverification import aws_verification_available
 
 LOGGER = logging.getLogger(__name__)
@@ -331,9 +328,10 @@ def project_home(request):
         'affiliation': user.profile.affiliation,
     }
 
+    managed_projects = PublishedProject.objects.data_access_managed_by(user)
     data_access_requests = DataAccessRequest.objects.filter(
-        project__in=[p for p in published_projects if p.can_approve_requests(user)],
-        status=0)
+        project__in=managed_projects, status=DataAccessRequest.PENDING_VALUE
+    ).select_related('project').order_by('request_datetime')
 
     task_count = (
         len(invitation_response_formset)
@@ -354,6 +352,7 @@ def project_home(request):
             'pending_author_approvals': pending_author_approvals,
             'invitation_response_formset': invitation_response_formset,
             'data_access_requests': data_access_requests,
+            'manages_data_access': managed_projects.exists(),
             'pending_revisions': pending_revisions,
             'task_count': task_count,
             'archive_view_days': ARCHIVE_VIEW_DAYS,
@@ -900,7 +899,7 @@ def project_access(request, project_slug, **kwargs):
     Page to edit project access policy
 
     """
-    user, project, passphrase = kwargs['user'], kwargs['project'], ''
+    project = kwargs['project']
     is_submitting = kwargs['is_submitting']
 
     if is_submitting and project.author_editable():
@@ -2837,6 +2836,122 @@ def _revoke_data_access_request(request, access_request):
     aws_removed = _remove_revoked_aws_access(access_request.project, access_request.requester)
     notification.notify_user_data_access_revoked(access_request, request.scheme, request.get_host())
     return aws_removed
+
+
+INBOX_EXPIRING_DAYS = 30
+INBOX_AUTO_ACCEPT_WARNING_DAYS = 30
+INBOX_PAGE_SIZE = 25
+
+
+def _inbox_status_filters():
+    """
+    The inbox tabs, as (key, label, filter) in display order. Filters use
+    the `valid_until` annotation added by DataAccessRequestManager.
+    """
+    now = timezone.now()
+    accepted = Q(status=DataAccessRequest.ACCEPT_REQUEST_VALUE)
+    active = accepted & (Q(duration__isnull=True) | Q(valid_until__gt=now))
+    return [
+        ('pending', 'Pending', Q(status=DataAccessRequest.PENDING_VALUE)),
+        ('active', 'Active', active),
+        ('expiring', f'Expiring within {INBOX_EXPIRING_DAYS} days',
+         accepted & Q(valid_until__gt=now, valid_until__lte=now + timezone.timedelta(days=INBOX_EXPIRING_DAYS))),
+        ('expired', 'Expired', accepted & Q(valid_until__lte=now)),
+        ('rejected', 'Rejected', Q(status=DataAccessRequest.REJECT_REQUEST_VALUE)),
+        ('revoked', 'Revoked', Q(status=DataAccessRequest.REVOKED_VALUE)),
+        ('withdrawn', 'Withdrawn', Q(status=DataAccessRequest.WITHDRAWN_VALUE)),
+        ('all', 'All', Q()),
+    ]
+
+
+@login_required
+def data_access_requests_inbox(request):
+    """
+    All data access requests for every contributor-review project (and
+    version) the user can review, with filters by status, project and text.
+    """
+    user = request.user
+    managed_projects = PublishedProject.objects.data_access_managed_by(user).order_by('title', '-version_order')
+
+    status_filters = _inbox_status_filters()
+    filters_by_key = {key: q for key, _, q in status_filters}
+    status = request.GET.get('status', 'pending')
+    if status not in filters_by_key:
+        status = 'pending'
+
+    requests = DataAccessRequest.objects.filter(project__in=managed_projects)
+
+    project_id = request.GET.get('project', '')
+    if project_id.isdigit():
+        requests = requests.filter(project_id=int(project_id))
+    else:
+        project_id = ''
+
+    search = request.GET.get('q', '').strip()
+    if search:
+        requests = requests.filter(
+            Q(requester__username__icontains=search)
+            | Q(requester__email__icontains=search)
+            | Q(requester__profile__first_names__icontains=search)
+            | Q(requester__profile__last_name__icontains=search)
+            | Q(data_use_title__icontains=search)
+        )
+
+    # Tab counts reflect the project and search filters
+    status_counts = requests.aggregate(**{key: Count('pk', filter=q) for key, _, q in status_filters})
+    tabs = [{'key': key, 'label': label, 'count': status_counts[key]} for key, label, _ in status_filters]
+
+    # Pending: longest waiting first. Expiring: soonest first. Otherwise newest first.
+    if status == 'pending':
+        ordering = ('request_datetime',)
+    elif status == 'expiring':
+        ordering = ('valid_until',)
+    else:
+        ordering = ('-request_datetime',)
+    requests = requests.filter(filters_by_key[status]).select_related(
+        'project', 'requester', 'requester__profile', 'requester__orcid', 'responder'
+    ).prefetch_related('project__required_trainings').order_by(*ordering)
+
+    page = paginate(request, requests, INBOX_PAGE_SIZE)
+
+    # Valid training types for everyone on this page, in one query
+    completed_training_types = {}
+    for user_id, training_type_id in (
+        Training.objects.get_valid()
+        .filter(user__in={r.requester_id for r in page})
+        .values_list('user_id', 'training_type_id')
+        .distinct()
+    ):
+        completed_training_types.setdefault(user_id, set()).add(training_type_id)
+
+    now = timezone.now()
+    auto_accept_days = DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT
+    for access_request in page:
+        required = {t.id for t in access_request.project.required_trainings.all()}
+        access_request.requires_training = bool(required)
+        access_request.has_required_trainings = required <= completed_training_types.get(
+            access_request.requester_id, set()
+        )
+        access_request.is_expired = (
+            access_request.status == DataAccessRequest.ACCEPT_REQUEST_VALUE and not access_request.is_accepted()
+        )
+        if access_request.is_pending():
+            waiting = (now - access_request.request_datetime).days
+            access_request.days_waiting = waiting
+            access_request.days_until_auto_accept = auto_accept_days - waiting
+
+    querystring = urlencode({k: v for k, v in (('status', status), ('project', project_id), ('q', search)) if v})
+
+    return render(request, 'project/data_access_requests_inbox.html', {
+        'page': page,
+        'tabs': tabs,
+        'status': status,
+        'managed_projects': managed_projects,
+        'project_id': project_id,
+        'search': search,
+        'querystring': querystring,
+        'auto_accept_warning_days': INBOX_AUTO_ACCEPT_WARNING_DAYS,
+    })
 
 
 @login_required

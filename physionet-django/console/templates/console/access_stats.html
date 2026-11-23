@@ -1,0 +1,42 @@
+{% extends "console/base_console.html" %}
+{% load static %}
+
+{% block title %}{{ report_title }} metrics{% endblock %}
+
+{% block content %}
+<div data-metrics-start="{{ form.start_date.value|date:'Y-m-d'|default:form.start_date.value }}" data-metrics-end="{{ form.end_date.value|date:'Y-m-d'|default:form.end_date.value }}">
+<div class="card mb-3">
+  <div class="card-header">{{ report_title }}{% include 'console/metrics_help.html' with title=report_title description=access_description %}</div>
+  <div class="card-body">
+
+
+    <p>Selected period: requests and decisions between the chosen dates. Current snapshot: pending queue as of now.</p>
+
+    <noscript><p>{{ access_description }}</p></noscript>
+  </div>
+</div>
+
+
+<section id="access-period" aria-labelledby="access-period-heading">
+  <div class="card mb-3">
+    <div class="card-header"><h2 class="h5 mb-0" id="access-period-heading">Selected period</h2></div>
+    <div class="card-body">
+      {% if record_dates.first %}
+      <p class="text-muted mb-2">Available records: {{ record_dates.first|date:"M j, Y" }} – {{ record_dates.last|date:"M j, Y" }}.{% include 'console/metrics_help.html' with title="Available records" description="First and latest request or decision for published datasets, before applying filters. These dates do not guarantee complete historical coverage. Updated every five minutes. The end date can be selected through today, including days without activity. The current pending queue is independent of this filter." %}</p>
+      {% else %}<p class="text-muted mb-2">No dataset access request records available.</p>{% endif %}
+      {% include 'console/usage_period_filters.html' %}</div>
+  </div>
+
+{% include 'console/metrics_profile_sections.html' with sections=sections|slice:":1" %}
+{% if report %}{% include 'console/metrics_trend.html' %}{% endif %}
+
+{% include 'console/metrics_profile_sections.html' with sections=access_profile_sections|slice:"1:" %}
+</section>
+{% if queue_title %}{% include 'console/metrics_queue.html' %}{% endif %}
+
+{% include 'console/metrics_profile_sections.html' with sections=access_account_age_sections %}
+{% if access_summary %}{% include 'console/access_queue_summary.html' %}{% endif %}
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script><script src="{% static 'console/js/metrics-trend.js' %}" defer></script><script src="{% static 'console/js/metrics-chart-export.js' %}" defer></script>{% endblock %}

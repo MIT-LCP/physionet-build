@@ -1,0 +1,12 @@
+<p class="small text-muted">{{ trend.summary }}{% include 'console/metrics_help.html' with title=trend.title description=trend.description %}</p>
+<div data-metrics-chart="{{ trend.id }}" data-title="{{ trend.title }}" data-label="{{ trend.title }}. Exact values and coverage are in the tables below."></div>
+{{ trend.chart|json_script:trend.id }}
+<p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial month</p>
+{% include 'console/metrics_chart_downloads.html' with chart_id=trend.id csv_query=csv_query %}
+<details class="mb-3">
+  <summary>Show monthly table and coverage</summary>
+  <div class="table-responsive"><table class="table table-bordered">
+    <thead><tr>{% for header in trend.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for row in trend.rows %}<tr>{% for cell in row %}<td>{% if cell is None %}—{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  </table></div>
+</details>

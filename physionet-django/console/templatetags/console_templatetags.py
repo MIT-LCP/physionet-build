@@ -1,7 +1,6 @@
 from django import template
 
 from console.navbar import CONSOLE_NAV_MENU
-import notification.utility as notification
 
 register = template.Library()
 

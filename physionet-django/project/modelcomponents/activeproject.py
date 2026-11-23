@@ -1,8 +1,6 @@
 from enum import IntEnum
 import logging
 import os
-import uuid
-import shutil
 import datetime
 from datetime import timedelta
 from html import unescape
@@ -11,7 +9,6 @@ from background_task import background
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
-from django.db.models.fields.files import FieldFile
 from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
@@ -1115,7 +1112,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 # Same content, different objects.
                 # References are published in the order they are cited
                 for number, reference in enumerate(self.ordered_references(), start=1):
-                    published_reference = PublishedReference.objects.create(
+                    PublishedReference.objects.create(
                         description=reference.description,
                         doi=reference.doi,
                         key=reference.key,
@@ -1124,7 +1121,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         project=published_project)
 
                 for publication in self.publications.all():
-                    published_publication = PublishedPublication.objects.create(
+                    PublishedPublication.objects.create(
                         citation=publication.citation, url=publication.url,
                         project=published_project)
 

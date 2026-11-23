@@ -4,7 +4,6 @@ import datetime
 import uuid
 from distutils.version import StrictVersion
 
-from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import models
@@ -19,9 +18,8 @@ from project.modelcomponents.dataaccessrequestreviewer import DataAccessRequestR
 from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
 from project.modelcomponents.log import AccessLog
-from project.utility import StorageInfo, clear_directory, get_tree_size
+from project.utility import StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
-from user.models import Training
 
 
 class PublishedProject(Metadata, SubmissionInfo):

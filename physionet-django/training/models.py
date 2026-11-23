@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils import timezone
 
 from project.fields import SafeHTMLField
 from project.validators import validate_version

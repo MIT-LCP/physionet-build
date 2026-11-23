@@ -79,6 +79,14 @@ class GroupAdmin(DefaultGroupAdmin):
         return super().render_change_form(request, context, *args, **kwargs)
 
 
+class AssociatedEmailAdmin(admin.ModelAdmin):
+    list_display = ('email', 'user', 'is_primary_email', 'is_verified', 'newsletter_subscribed',
+                    'newsletter_subscribed_at')
+    list_filter = ('is_verified', 'is_primary_email', 'newsletter_subscribed')
+    search_fields = ('email', 'user__username')
+    raw_id_fields = ('user',)
+
+
 @receiver(post_save, sender=LogEntry)
 def log_admin_panel_activity(sender, **kwargs):
     """
@@ -95,7 +103,7 @@ admin.site.register(Group, GroupAdmin)
 # Register the custom User model with the custom UserAdmin model
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Profile)
-admin.site.register(models.AssociatedEmail)
+admin.site.register(models.AssociatedEmail, AssociatedEmailAdmin)
 
 admin.site.register(models.LegacyCredential)
 admin.site.register(models.CredentialApplication)

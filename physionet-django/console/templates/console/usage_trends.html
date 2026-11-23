@@ -1,0 +1,27 @@
+<div id="usage-trends">
+{% for panel in usage_trend.charts %}
+<div class="card mb-3">
+  <div class="card-header">{{ panel.title }}{% include 'console/metrics_help.html' with title=panel.title description=usage_trend.description %}</div>
+  <div class="card-body">
+    {% if forloop.first %}
+    <p>Monthly counts are grouped by session start date in the site time zone. A person is counted once per month,
+      across all dataset versions; the same person may appear in several months.</p>
+    {% else %}
+    <p>Sessions are counted by their start date in the site time zone. One person can start multiple sessions.</p>
+    {% endif %}
+    <div data-metrics-chart="{{ panel.id }}" data-title="{{ panel.title }}" data-label="{{ panel.title }}. Exact values are in the table below."></div>
+    {{ panel.chart|json_script:panel.id }}
+    <p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial month</p>
+    <noscript><p>{{ usage_trend.description }}</p></noscript>
+    {% include 'console/metrics_chart_downloads.html' with chart_id=panel.id csv_query=trend_export_query %}
+    <details>
+      <summary>Show monthly table</summary>
+      <div class="table-responsive"><table class="table table-bordered">
+        <thead><tr>{% for header in usage_trend.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in usage_trend.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+      </table></div>
+    </details>
+  </div>
+</div>
+{% endfor %}
+</div>

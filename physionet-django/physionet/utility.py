@@ -11,7 +11,7 @@ import urllib.parse
 from django.conf import settings
 from django.http import HttpResponse, Http404, BadHeaderError
 from django.utils.html import format_html
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator
 from django.contrib.gis.geoip2 import GeoIP2
 import geoip2.errors
 

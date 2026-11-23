@@ -7,14 +7,14 @@ register = template.Library()
 
 @register.inclusion_tag('user/settings_tabs.html', takes_context=True)
 def settings_tabs(context, hide_password_settings: bool):
-    default_tabs = ['Profile', 'Emails', 'Username', 'Cloud', 'ORCID', 'Credentialing', 'Training',
-                    'Agreements']
+    default_tabs = ['Profile', 'Emails', 'Username', 'Communications', 'Cloud', 'ORCID', 'Credentialing',
+                    'Training', 'Agreements']
     if not hide_password_settings:
         default_tabs.insert(1, 'Password')
 
     # Only show KHDP tab if configured
     if getattr(settings, 'KHDP_CLIENT_ID', None):
-        default_tabs.insert(5, 'KHDP')  # Insert after ORCID
+        default_tabs.insert(default_tabs.index('ORCID') + 1, 'KHDP')
 
     return {'settings_tabs': default_tabs, 'request': context.get('request')}
 

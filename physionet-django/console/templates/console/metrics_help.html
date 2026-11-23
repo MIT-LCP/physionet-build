@@ -1,0 +1,7 @@
+{% if description %}
+<button type="button" class="btn btn-link p-0 ml-2 metrics-help"
+        data-toggle="popover" data-trigger="click" data-placement="auto" data-container="body" data-html="false"
+        data-template='<div class="popover metrics-popover" role="tooltip"><div class="arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
+        title="{{ title }}" data-content="{{ description }}"
+        aria-label="How {{ title }} is calculated" aria-expanded="false"><span aria-hidden="true">ⓘ</span></button>
+{% endif %}

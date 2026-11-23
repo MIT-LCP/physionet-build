@@ -8,18 +8,6 @@ from django.utils import timezone
 from requests import get, post, put
 from requests.auth import HTTPBasicAuth
 
-from project.cloud.gcp import (
-    add_email_bucket_access,
-    bucket_info,
-    check_bucket_exists,
-    create_access_group,
-    create_bucket,
-    create_directory_service,
-    make_bucket_public,
-    remove_bucket_permissions,
-    update_access_group,
-    upload_files,
-)
 from project.validators import validate_doi
 
 LOGGER = logging.getLogger(__name__)

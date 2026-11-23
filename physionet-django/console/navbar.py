@@ -214,7 +214,12 @@ CONSOLE_NAV_MENU = NavMenu([
     NavSubmenu(_('Metrics'), 'stats', 'chart-area', [
         NavLink(_('Editorial'), 'editorial_stats'),
         NavLink(_('Credentialing'), 'credentialing_stats'),
+        NavLink(_('Training'), 'training_stats'),
         NavLink(_('Submissions'), 'submission_stats'),
+        NavLink(_('Usage'), 'usage_stats'),
+        NavLink(_('Access requests'), 'access_request_stats'),
+        NavLink(_('Users'), 'user_stats'),
+        NavLink(_('AWS downloads'), 'download_stats'),
         NavLink(_('Export data'), 'downloads'),
     ]),
 

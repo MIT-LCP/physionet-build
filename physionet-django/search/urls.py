@@ -22,20 +22,20 @@ urlpatterns = [
     ),
 
     # published project content
-    re_path('^(?P<anonymous_url>[\w\d]{64})/$', project_views.anonymous_login,
+    re_path(r'^(?P<anonymous_url>\w{64})/$', project_views.anonymous_login,
         name='anonymous_login'),
     path('content/<project_slug>/', project_views.published_project_latest,
         name='published_project_latest'),
     path('content/<project_slug>/<version>/', project_views.published_project,
         name='published_project'),
-    re_path('^content/(?P<project_slug>[\w\-]+)/(?P<version>[\d\.]+)/(?P<subdir>.+)/$',
+    re_path(r'^content/(?P<project_slug>[\w\-]+)/(?P<version>[\d\.]+)/(?P<subdir>.+)/$',
         project_views.published_project, name='published_project_subdir'),
     path('content/<project_slug>/files-panel/<version>/',
         project_views.published_files_panel, name='published_files_panel'),
-    re_path('^files/(?P<project_slug>[\w-]+)/(?P<version>[\d\.]+)/(?P<full_file_name>.*)$',
+    re_path(r'^files/(?P<project_slug>[\w-]+)/(?P<version>[\d\.]+)/(?P<full_file_name>.*)$',
         project_views.serve_published_project_file,
         name='serve_published_project_file'),
-    re_path('^content/(?P<project_slug>[\w\-]+)/(?P<version>[\d\.]+)/(?P<full_file_name>.+)$',
+    re_path(r'^content/(?P<project_slug>[\w\-]+)/(?P<version>[\d\.]+)/(?P<full_file_name>.+)$',
         project_views.display_published_project_file,
         name='display_published_project_file'),
     path('content/<project_slug>/get-zip/<version>/',
@@ -85,6 +85,9 @@ urlpatterns = [
     path('access-requests/<project_slug>/<version>/<int:pk>/',
          project_views.data_access_request_view,
          name='data_access_request_view'),
+    path('access-requests/',
+         project_views.data_access_requests_inbox,
+         name='data_access_requests_inbox'),
     path('access-requests/<project_slug>/<version>/',
          project_views.data_access_requests_overview,
          name='data_access_requests_overview'),
@@ -96,8 +99,8 @@ urlpatterns = [
 
     # Redirect from legacy
     path('physiobank/database/wfdbcal', views.wfdbcal),
-    re_path('^physiobank/database/(?P<project_slug>[\w\-]+)/$', views.redirect_project),
-    re_path('^physiotools/(?P<project_slug>[\w\-]+)/$', views.redirect_project),
+    re_path(r'^physiobank/database/(?P<project_slug>[\w\-]+)/$', views.redirect_project),
+    re_path(r'^physiotools/(?P<project_slug>[\w\-]+)/$', views.redirect_project),
     re_path(r'^challenge/(?P<year>\w+)/$', views.redirect_challenge_project,
             name='redirect_challenge_project'),
 ]
@@ -141,6 +144,7 @@ TEST_CASES = {
     'data_access_request_status_detail': {**_demo_access_requester, 'pk': '1'},
     'data_access_request_view': {**_demo_access_manager, 'pk': '1'},
     'data_access_requests_overview': _demo_access_manager,
+    'data_access_requests_inbox': {'_user_': 'george'},
     'manage_data_access_reviewers': _demo_access_manager,
 
     # only available when the OpenAlex integration is enabled

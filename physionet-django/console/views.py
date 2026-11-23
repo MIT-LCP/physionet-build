@@ -4,23 +4,52 @@ import os
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
-from statistics import StatisticsError, median
+from urllib.parse import urlencode
 
 import notification.utility as notification
 from notification.utility import archive_notify
 from background_task import background
 from console.tasks import associated_task, get_associated_tasks
+from console.access_trends import ACCESS_DESCRIPTION, access_record_dates, approved_user_trends, pending_request_trend
+from console.credential_charts import credential_chart_panels
+from console.credential_metrics import (
+    credential_annual_report, credential_annual_stats, credential_reapplication_csv, credential_summary_report,
+)
+from console.download_metrics import DOWNLOAD_DESCRIPTION, download_record_dates, download_report, import_coverage
+from console.editorial_metrics import editorial_annual_stats, editorial_trend
+from console.submission_profiles import CONTRIBUTOR_DEFINITION, submission_profile_sections
+from console.training_metrics import (
+    TRAINING_DESCRIPTION, approval_trend, expiry_summary, review_queue, review_time_trend, submission_trend,
+    training_record_dates, type_summary,
+)
+from console.reporting import (
+    access_pending_summary,
+    access_pending_summary_csv,
+    access_queue_rows,
+    access_trend,
+    date_bounds,
+    partial_periods,
+    pending_access_requests,
+    queue_csv,
+    report_csv,
+)
+from console.usage_trends import (
+    usage_trends, usage_trends_csv, usage_country_trends, usage_monthly_demographics, usage_category_trend,
+    usage_dataset_trends,
+)
+from console.usage import UsageDateForm, access_metrics, usage_csv, usage_metrics, usage_record_dates, usage_sections
+from console.user_metrics import USER_DESCRIPTION, last_login_summary, user_record_dates, user_trend
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db import transaction
-from django.db.models import Count, DurationField, F, Min, Q, Prefetch
-from django.db.models.functions import Cast, TruncDate
+from django.db.models import Count, F, OuterRef, Q, Prefetch, Subquery
+from django.db.models.functions import TruncDate
 from django.forms import Select, Textarea, modelformset_factory, inlineformset_factory
 from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
@@ -29,6 +58,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.decorators import method_decorator
+from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
@@ -47,14 +77,12 @@ from project.models import (
     AccessPolicy,
     ActiveProject,
     Affiliation,
-    AnonymousAccess,
     Author,
     DataAccess,
     DUA,
     DataAccessRequest,
     DUASignature,
     EditLog,
-    ExternalReview,
     License,
     Publication,
     PublishedAuthor,
@@ -71,7 +99,6 @@ from project.models import (
     exists_project_slug,
     InternalNote
 )
-from project.authorization.access import can_view_project_files
 import project.tasks as project_tasks
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
@@ -88,20 +115,25 @@ from user.models import (
     TrainingType,
     TrainingQuestion,
     CITIGroupMapping,
-    CITIVerification,
     CodeOfConduct,
     CloudInformation
 )
-from search.models import FederatedSite, FederationSyncLog, FederatedProject
+from search.models import FederatedSite, FederatedProject
 from physionet.enums import LogCategory
 from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
+from user.enums import TrainingStatus
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
+from project.cloud.gcp import (
+    add_email_bucket_access,
+    bucket_info,
+    check_bucket_exists,
+    create_bucket,
+    upload_files,
+)
 from project.cloud.s3 import (
-    create_s3_bucket,
     upload_project_to_S3,
     get_bucket_name,
-    check_s3_bucket_exists,
     has_s3_credentials,
     delete_project_files_from_s3,
     disable_project_access_in_s3,
@@ -1425,9 +1457,9 @@ def send_files_to_gcp(pid):
     to GCP. It only requires the Project ID.
     """
     project = PublishedProject.objects.get(id=pid)
-    exists = utility.check_bucket_exists(project.slug, project.version)
+    exists = check_bucket_exists(project.slug, project.version)
     if exists:
-        utility.upload_files(project)
+        upload_files(project)
         project.gcp.sent_files = True
         project.gcp.finished_datetime = timezone.now()
         if project.compressed_storage_size:
@@ -1765,24 +1797,24 @@ def gcp_bucket_management(request, project, user):
     if project.access_policy == AccessPolicy.OPEN:
         is_private = False
 
-    bucket_name, group = utility.bucket_info(project.slug, project.version)
+    bucket_name, group = bucket_info(project.slug, project.version)
 
     try:
-        gcp_object = GCP.objects.get(bucket_name=bucket_name)
+        GCP.objects.get(bucket_name=bucket_name)
         messages.success(request, "The bucket already exists. Resending the \
             files for the project {0}.".format(project))
     except GCP.DoesNotExist:
-        if utility.check_bucket_exists(project.slug, project.version):
+        if check_bucket_exists(project.slug, project.version):
             LOGGER.info("The bucket {0} already exists, skipping bucket and \
                 group creation".format(bucket_name))
         else:
-            utility.create_bucket(project.slug, project.version, project.title, is_private)
+            create_bucket(project.slug, project.version, project.title, is_private)
             messages.success(request, "The GCP bucket for project {0} was \
                 successfully created.".format(project))
         GCP.objects.create(project=project, bucket_name=bucket_name,
                            managed_by=user, is_private=is_private, access_group=group)
         if is_private:
-            granted = utility.add_email_bucket_access(project, group, True)
+            granted = add_email_bucket_access(project, group, True)
             DataAccess.objects.create(project=project, platform=3, location=group)
             if not granted:
                 error = "The GCP bucket for project {0} was successfully created, \
@@ -2698,6 +2730,49 @@ def search_training_applications(request, display_training):
     return display_training
 
 
+def get_citi_verification_context(training):
+    """
+    Build the template context for the CITI API verification card.
+
+    The data shown is what the CITI API returned when the training was
+    submitted, so it remains available after the training is processed.
+    """
+    show_citi_verification = CITIGroupMapping.objects.filter(
+        training_type=training.training_type
+    ).exists()
+
+    verification = getattr(training, 'citi_verification', None)
+
+    if verification and (verification.member_profile_xml or verification.completions_xml):
+        citi_api_data = parse_completions_xml(verification.completions_xml) or None
+        citi_member_profile = parse_member_profile_xml(verification.member_profile_xml)
+    else:
+        citi_api_data = None
+        citi_member_profile = None
+
+    citi_email_still_verified = (
+        verification
+        and verification.lookup_email
+        and training.user.associated_emails.filter(
+            email=verification.lookup_email, is_verified=True
+        ).exists()
+    )
+
+    return {
+        'show_citi_verification': show_citi_verification,
+        'citi_verification': verification,
+        'citi_api_data': citi_api_data,
+        'citi_member_profile': citi_member_profile,
+        'citi_email_still_verified': citi_email_still_verified,
+        'citi_auto_approval_failures': (
+            verification.auto_approval_notes.splitlines() if verification else []
+        ),
+        'citi_awaiting_manual_review': (
+            not settings.CITI_AUTO_APPROVE and training.status == TrainingStatus.REVIEW
+        ),
+    }
+
+
 @console_permission_required('user.can_review_training')
 def training_process(request, pk):
     training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
@@ -2776,28 +2851,6 @@ def training_process(request, pk):
     else:
         parsed_training_pdf = None
 
-    # CITI API verification data (populated at submission time)
-    show_citi_verification = CITIGroupMapping.objects.filter(
-        training_type=training.training_type
-    ).exists()
-
-    verification = getattr(training, 'citi_verification', None)
-
-    if verification and (verification.member_profile_xml or verification.completions_xml):
-        citi_api_data = parse_completions_xml(verification.completions_xml) or None
-        citi_member_profile = parse_member_profile_xml(verification.member_profile_xml)
-    else:
-        citi_api_data = None
-        citi_member_profile = None
-
-    citi_email_still_verified = (
-        verification
-        and verification.lookup_email
-        and training.user.associated_emails.filter(
-            email=verification.lookup_email, is_verified=True
-        ).exists()
-    )
-
     return render(
         request,
         'console/training_process.html',
@@ -2806,20 +2859,22 @@ def training_process(request, pk):
             'questions_formset': questions_formset,
             'training_review_form': training_review_form,
             'parsed_training_pdf': parsed_training_pdf,
-            'show_citi_verification': show_citi_verification,
-            'citi_verification': verification,
-            'citi_api_data': citi_api_data,
-            'citi_member_profile': citi_member_profile,
-            'citi_email_still_verified': citi_email_still_verified,
+            **get_citi_verification_context(training),
         },
     )
 
 
 @console_permission_required('user.can_review_training')
 def training_detail(request, pk):
-    training = get_object_or_404(Training.objects.prefetch_related('training_type'), pk=pk)
+    training = get_object_or_404(
+        Training.objects.select_related('training_type', 'user__profile', 'reviewer', 'citi_verification'), pk=pk
+    )
 
-    return render(request, 'console/training_detail.html', {'training': training})
+    return render(
+        request,
+        'console/training_detail.html',
+        {'training': training, **get_citi_verification_context(training)},
+    )
 
 
 @console_permission_required('notification.change_news')
@@ -2900,9 +2955,9 @@ def featured_content(request):
     if 'add' in request.POST:
         featured = PublishedProject.objects.filter(featured__isnull=False)
         mx = max(featured.values_list('featured', flat=True), default=1)
-        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=mx + 1)
+        PublishedProject.objects.filter(id=request.POST['id']).update(featured=mx + 1)
     elif 'remove' in request.POST:
-        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=None)
+        PublishedProject.objects.filter(id=request.POST['id']).update(featured=None)
     elif 'up' in request.POST:
         # Get project to be moved
         idx = int(request.POST['up'])
@@ -2997,69 +3052,29 @@ def _stats_csv_response(filename, headers, rows):
     return response
 
 
+def _editorial_trend_context(request):
+    """Monthly time to first decision for the selected dates."""
+    today = timezone.localdate()
+    form = UsageDateForm({'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()})
+    context = {'report_form': form}
+    if not form.is_valid():
+        return None, context
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    report = editorial_trend(start, end)
+    if request.GET.get('export') == 'monthly':
+        return report_csv(report), context
+    context.update({'report': report, 'trend_export_query': urlencode(
+        {'start_date': start.isoformat(), 'end_date': end.isoformat(), 'export': 'monthly'})})
+    return None, context
+
+
 @console_permission_required('project.can_view_stats')
 def editorial_stats(request):
     """
     Editorial stats for reviewers.
     """
-    # We only want the non-legacy projects since they contain the required
-    # dates (editor assignment, submission date, etc.)
-    projects = PublishedProject.objects.filter(is_legacy=False)
-    years = [i.publish_datetime.year for i in projects]
-    stats = OrderedDict()
-
-    # Number published
-    for y in sorted(set(years)):
-        stats[y] = [years.count(y)]
-
-    # Submission to editor assigned
-    sub_ed = projects.annotate(tm=Cast(F('editor_assignment_datetime') - F('submission_datetime'),
-                               DurationField())).values_list('tm', flat=True)
-
-    for y in stats:
-        y_durations = sub_ed.filter(publish_datetime__year=y)
-        days = [d.days for d in y_durations if d is not None and d.days >= 0]
-        try:
-            stats[y].append(median(days))
-        except StatisticsError:
-            stats[y].append(None)
-
-    # Submission to publication
-    sub_pub = projects.annotate(tm=Cast(F('publish_datetime') - F('submission_datetime'),
-                                DurationField())).values_list('tm', flat=True)
-
-    for y in stats:
-        y_durations = sub_pub.filter(publish_datetime__year=y)
-        days = [d.days for d in y_durations if d is not None and d.days >= 0]
-        try:
-            stats[y].append(median(days))
-        except StatisticsError:
-            stats[y].append(None)
-
-    # One duration per project, from initial submission to its first decision.
-    # Aggregate in SQL rather than fetching each project's edit history.
-    sub_dec_by_year = {}
-    for project_set in (projects, ActiveProject.objects.all()):
-        durations = project_set.filter(submission_datetime__isnull=False).annotate(
-            first_decision=Min(
-                'edit_logs__decision_datetime',
-                filter=Q(edit_logs__decision__isnull=False),
-            ),
-        ).annotate(
-            tm=Cast(F('first_decision') - F('submission_datetime'), DurationField()),
-        ).values_list('first_decision', 'tm')
-        for decision_date, duration in durations:
-            if duration is not None and duration.total_seconds() >= 0:
-                sub_dec_by_year.setdefault(decision_date.year, []).append(duration.days)
-
-    # Include decision-only years and explicitly restore chronological order.
-    for y in sub_dec_by_year:
-        stats.setdefault(y, [0, None, None])
-    stats = OrderedDict(sorted(stats.items()))
-    for y in stats:
-        days = sub_dec_by_year.get(y, [])
-        stats[y].append(median(days) if days else None)
-
+    stats = editorial_annual_stats()
+    # The full annual history does not depend on the selected dates.
     if request.GET.get('export') == 'csv':
         return _stats_csv_response(
             'editorial-stats.csv',
@@ -3067,9 +3082,63 @@ def editorial_stats(request):
              'Submission to final publication (median days)', 'Submission to first decision (median days)'],
             ([year, *values] for year, values in sorted(stats.items())),
         )
+    response, operational = _editorial_trend_context(request)
+    if response is not None:
+        return response
+    form = operational['report_form']
+    valid_dates = form.is_valid()
+    period_stats = OrderedDict()
+    period_query = ''
+    start, end = None, None
+    if valid_dates:
+        start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+        start_bound, end_bound = date_bounds(start, end)
+        period_stats = editorial_annual_stats(start_bound, end_bound)
+        period_query = urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat(),
+                                  'export': 'review-period'})
+        if request.GET.get('export') == 'review-period':
+            return _stats_csv_response(
+                'editorial-selected-period-stats.csv',
+                ['Year', 'Total publications', 'Submission to assignment of editor (median days)',
+                 'Submission to final publication (median days)', 'Submission to first decision (median days)',
+                 'Start date', 'End date'],
+                ([year, *values, start, end] for year, values in period_stats.items()),
+            )
 
+    review_page = Paginator(list(reversed(stats.items())), 5).get_page(request.GET.get('review_page'))
+    review_query = request.GET.copy()
+    review_query.pop('review_page', None)
+    review_query.pop('export', None)
+    review_links = {}
+    for direction, available, number in (
+            ('previous', review_page.has_previous(), review_page.number - 1),
+            ('next', review_page.has_next(), review_page.number + 1)):
+        if available:
+            review_query['review_page'] = number
+            review_links[direction + '_url'] = f'?{review_query.urlencode()}#time-to-review'
+    colors, markers = ['#2563eb', '#ea580c', '#15803d'], ['circle', 'square', 'triangle']
+    chart_base = {'labels': [str(year) for year in period_stats], 'integer': False,
+                  'partial': partial_periods([str(year) for year in period_stats], start, end, 'year')
+                  if valid_dates else [],
+                  'period_unit': 'year', 'partial_through': end.isoformat() if end else ''}
+    duration_series = [
+        {'name': name, 'values': [values[index] for values in period_stats.values()], 'color': color, 'marker': marker}
+        for index, name, color, marker in zip(
+            (1, 2, 3), ('Submission to assignment of editor', 'Submission to final publication',
+                        'Submission to first decision'), colors, markers)
+    ]
+    review_charts = {
+        'volume': {**chart_base, 'integer': True, 'legend': False, 'series': [
+            {'name': 'Publications', 'values': [values[0] for values in period_stats.values()], 'color': '#475569'}]},
+        'duration': {**chart_base, 'plot_height': 320, 'interactive_legend': True,
+                     'legend_title': 'Visible processing intervals', 'series': duration_series},
+    }
     return render(request, 'console/editorial_stats.html', {
-                  'submenu': 'editorial', 'stats': stats})
+                  'submenu': 'editorial', 'stats': stats, 'review_page': review_page,
+                  'review_charts': review_charts, 'review_links': review_links,
+                  'review_period_query': period_query, 'review_period_stats': period_stats,
+                  'review_partial': any(chart_base['partial']), **operational},
+                  status=200 if operational['report_form'].is_valid() else 400)
 
 
 @console_permission_required('project.can_view_stats')
@@ -3077,76 +3146,42 @@ def credentialing_stats(request):
     """
     Credentialing metrics.
     """
-    apps = CredentialApplication.objects.all()
-    years = [a.application_datetime.year for a in apps]
-    stats = OrderedDict()
-
-    # Application count by year
-    for y in sorted(set(years)):
-        stats[y] = {}
-        stats[y]['count'] = years.count(y)
-
-    # Number processed (accepted or rejected) and proportion approved
-    for y in stats:
-        # accepted = 2. rejected = 1.
-        acc_and_rej = apps.filter(application_datetime__year=y)
-        a = acc_and_rej.filter(status=CredentialApplication.Status.ACCEPTED).count()
-        r = acc_and_rej.filter(status=CredentialApplication.Status.REJECTED).count()
-        stats[y]['processed'] = a + r
-        try:
-            stats[y]['approved'] = round((100 * a) / (a + r))
-        except ZeroDivisionError:
-            stats[y]['approved'] = None
-
-    # Time taken to contact the reference
-    time_to_ref = apps.annotate(tm=Cast(F('reference_contact_datetime')
-                                - F('application_datetime'),
-                                DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_ref.filter(application_datetime__year=y)
-        try:
-            days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_ref'] = round(median(days), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_ref'] = None
-
-    # Time taken for the reference to respond (in hours)
-    time_to_reply = apps.annotate(tm=Cast(F('reference_response_datetime')
-                                  - F('reference_contact_datetime'),
-                                  DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_reply.filter(application_datetime__year=y)
-        try:
-            hours = [d.total_seconds() / 3600 for d in durations if d and d.total_seconds() >= 0]
-            stats[y]['time_to_reply'] = round(median(hours), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_reply'] = None
-
-    # Time taken to process the application
-    time_to_decision = apps.annotate(tm=Cast(F('decision_datetime')
-                                     - F('application_datetime'),
-                                     DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_decision.filter(application_datetime__year=y)
-        try:
-            days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_decision'] = round(median(days), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_decision'] = None
-
-    if request.GET.get('export') == 'csv':
-        fields = ('count', 'processed', 'approved', 'time_to_decision', 'time_to_ref', 'time_to_reply')
-        return _stats_csv_response(
-            'credentialing-stats.csv',
-            ['Year', 'Total applications', 'Total handled (accepted + rejected)', 'Approved (%)',
-             'Decision time (days, median)', 'Time to contact reference (days, median)',
-             'Reference response time (hours, median)'],
-            ([year, *(values.get(field) for field in fields)] for year, values in sorted(stats.items())),
-        )
-
-    return render(request, 'console/credentialing_stats.html',
-                  {'submenu': 'credential',
-                   'stats': stats})
+    export = request.GET.get('export')
+    if export == 'annual':
+        return report_csv(credential_annual_report(credential_annual_stats()))
+    if export == 'csv':
+        response = report_csv(credential_summary_report(credential_annual_stats()))
+        response['Content-Disposition'] = 'attachment; filename="credentialing-stats.csv"'
+        return response
+    today = timezone.localdate()
+    form = UsageDateForm({'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()})
+    context = {'submenu': 'credential', 'report_form': form}
+    if not form.is_valid():
+        return render(request, 'console/credentialing_stats.html', context, status=400)
+    stats = credential_annual_stats()
+    context['stats'] = stats
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    panels = credential_chart_panels(start, end, stats, timezone.now())
+    annual = {panel['id']: panel for panel in panels['annual_panels']}
+    annual['credentialing-annual-outcomes'].update(
+        export='annual', table_template='console/credential_annual_outcomes_table.html')
+    annual['credentialing-annual-days']['table_template'] = 'console/credential_annual_durations_table.html'
+    all_panels = [*panels['monthly_panels'], panels['queue_panel'],
+                  *panels['reapplication_panels'], *panels['annual_panels']]
+    for panel in all_panels:
+        dated = {'start_date': start.isoformat(), 'end_date': end.isoformat()} if panel['start_date'] else {}
+        if panel.get('snapshot'):
+            dated = {}
+        panel['export_query'] = urlencode({**dated, 'export': panel['export']})
+        if any(panel['chart'].get('partial', [])):
+            panel['partial_note'] = 'Partial ' + panel['chart'].get('period_unit', 'month')
+        if export == panel['export']:
+            return report_csv(panel)
+    if export == 'reapplication-summary':
+        return credential_reapplication_csv(panels['reapplication_panels'])
+    context.update(panels)
+    context['report'] = panels['monthly_panels'][0]
+    return render(request, 'console/credentialing_stats.html', context)
 
 
 @console_permission_required('project.can_view_stats')
@@ -3157,7 +3192,7 @@ def submission_stats(request):
 
     stats = OrderedDict()
     monthly_periods = {}
-    todays_date = datetime.today()
+    todays_date = timezone.localdate()
     all_projects = [PublishedProject.objects.filter(is_legacy=False), ActiveProject.objects.all()]
     cur_year = todays_date.year
     cur_month = todays_date.month
@@ -3185,8 +3220,9 @@ def submission_stats(request):
 
         # Get times when projects were created
         for project in project_set:
-            create_yr = project.creation_datetime.year
-            create_mo = project.creation_datetime.strftime("%B")
+            created = timezone.localtime(project.creation_datetime)
+            create_yr = created.year
+            create_mo = created.strftime("%B")
             if create_yr in stats and create_mo in stats[create_yr]:
                 stats[create_yr][create_mo][0] += 1
             if create_yr in yearly_stats:
@@ -3195,8 +3231,9 @@ def submission_stats(request):
             # Get times when projects were submitted and count unique submissions vs. resubmissions
             edit_logs = project.edit_log_history()
             for log in edit_logs:
-                sub_date_yr = log.submission_datetime.year
-                sub_date_mo = log.submission_datetime.strftime("%B")
+                submitted = timezone.localtime(log.submission_datetime)
+                sub_date_yr = submitted.year
+                sub_date_mo = submitted.strftime("%B")
                 idx = 2 if log.is_resubmission else 1
                 if sub_date_yr in stats and sub_date_mo in stats[sub_date_yr]:
                     stats[sub_date_yr][sub_date_mo][idx] += 1
@@ -3205,8 +3242,9 @@ def submission_stats(request):
 
                 # Get times when projects were rejected, if applicable
                 if log.decision == 0 and log.decision_datetime:
-                    reject_yr = log.decision_datetime.year
-                    reject_mo = log.decision_datetime.strftime("%B")
+                    decided = timezone.localtime(log.decision_datetime)
+                    reject_yr = decided.year
+                    reject_mo = decided.strftime("%B")
                     if reject_yr in stats and reject_mo in stats[reject_yr]:
                         stats[reject_yr][reject_mo][4] += 1
                     if reject_yr in yearly_stats:
@@ -3214,8 +3252,9 @@ def submission_stats(request):
 
             # Get times when projects were published, if applicable
             try:
-                pub_yr = project.publish_datetime.year
-                pub_mo = project.publish_datetime.strftime("%B")
+                published = timezone.localtime(project.publish_datetime)
+                pub_yr = published.year
+                pub_mo = published.strftime("%B")
                 if pub_yr in stats and pub_mo in stats[pub_yr]:
                     stats[pub_yr][pub_mo][3] += 1
                 if pub_yr in yearly_stats:
@@ -3227,18 +3266,75 @@ def submission_stats(request):
         headers = ['Year', 'Created', 'Submitted', 'Resubmitted', 'Published', 'Rejected']
         if export_table == 'yearly':
             return _stats_csv_response(
-                f'submission-yearly-stats-{todays_date:%Y-%m-%d}.csv', headers,
-                ([year, *values] for year, values in sorted(yearly_stats.items())),
+                f'submission-yearly-stats-{todays_date:%Y-%m-%d}.csv', [*headers, 'Period coverage'],
+                ([year, *values, 'Partial year' if year == todays_date.year else 'Full year']
+                 for year, values in sorted(yearly_stats.items())),
             )
         return _stats_csv_response(
             f'submission-monthly-stats-{todays_date:%Y-%m-%d}.csv',
-            ['Period (YYYY-MM)', headers[0], 'Month', *headers[1:]],
-            ([monthly_periods[(year, month)], year, month, *values]
+            ['Period (YYYY-MM)', headers[0], 'Month', *headers[1:], 'Period coverage'],
+            ([monthly_periods[(year, month)], year, month, *values,
+              'Partial month' if monthly_periods[(year, month)] == todays_date.strftime('%Y-%m') else 'Full month']
              for year, months in reversed(stats.items()) for month, values in reversed(months.items())),
         )
 
+    def activity_charts(rows, partial, unit):
+        labels = [row[0] for row in rows]
+        series = [
+            {'name': name, 'values': [row[index + 1] for row in rows], 'color': color, 'marker': marker}
+            for index, (name, color, marker) in enumerate([
+                ('Created', '#475569', 'circle'), ('Submitted', '#2563eb', 'circle'),
+                ('Resubmitted', '#ea580c', 'square'), ('Published', '#15803d', 'triangle'),
+                ('Rejected', '#b91c1c', 'diamond'),
+            ])
+        ]
+        base = {'labels': labels, 'partial': partial, 'integer': True, 'period_unit': unit,
+                'partial_through': todays_date.isoformat()}
+        return {'created': {**base, 'legend': False, 'series': series[:1]},
+                'activity': {**base, 'series': series[1:], 'interactive_legend': True,
+                             'legend_title': 'Visible project activities', 'plot_height': 320},
+                'start_date': labels[0] + ('-01' if unit == 'month' else '-01-01')}
+
+    monthly_rows = [[monthly_periods[(year, month)], *values]
+                    for year, months in reversed(stats.items()) for month, values in reversed(months.items())]
+    yearly_rows = [[str(year), *values] for year, values in sorted(yearly_stats.items())]
+    monthly_charts = activity_charts(monthly_rows, [row[0] == todays_date.strftime('%Y-%m') for row in monthly_rows],
+                                     'month')
+    yearly_charts = activity_charts(yearly_rows, [row[0] == str(todays_date.year) for row in yearly_rows], 'year')
+
+    form = UsageDateForm({'start_date': todays_date.replace(month=1, day=1),
+                          'end_date': todays_date, **request.GET.dict()})
+    sections = []
+    if form.is_valid():
+        start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+        sections = submission_profile_sections(start, end)
+        if request.GET.get('export') == 'contributor-data':
+            section = next((item for item in sections if item['profile_id'] == request.GET.get('section')), None)
+            if section is None:
+                raise Http404('Unknown contributor chart')
+            export_section = {**section, 'rows': section['export_rows']}
+            response = usage_csv([export_section], start, end)
+            response['Content-Disposition'] = f'attachment; filename="{section["profile_id"]}.csv"'
+            return response
+
     return render(request, 'console/submission_stats.html',
-                  {'submenu': 'submission', 'stats': stats, 'yearly_stats': yearly_stats})
+                  {'submenu': 'submission', 'stats': stats, 'yearly_stats': yearly_stats,
+                   'form': form, 'sections': sections, 'contributor_definition': CONTRIBUTOR_DEFINITION,
+                   'snapshot_date': todays_date, 'current_month': todays_date.strftime('%B'),
+                   'monthly_charts': monthly_charts, 'yearly_charts': yearly_charts,
+                   'submission_definition': (
+                       'Each column counts activity by its own date in the site time zone, not a creation cohort. '
+                       'Created counts active and non-legacy published records, including unsubmitted drafts. '
+                       'Submitted and Resubmitted count edit-log events by submission date, separated by the '
+                       'resubmission flag. Rejected counts rejection decisions by decision date; Published counts '
+                       'publication records by publication date. Contributor profiles instead count distinct versions '
+                       'by their recorded first-submission date. '
+                       'Milestones and edit-log events can differ in historical records; ratios between these '
+                       'columns are not conversion rates. Charts run oldest to newest; tables run newest to oldest. '
+                       'Legacy published projects are excluded from this report. '
+                       'Changes in recorded activity may reflect '
+                       'changes in recording practices; these reports do not establish the cause.')},
+                  status=200 if form.is_valid() else 400)
 
 
 @console_permission_required('project.can_view_stats')
@@ -3272,6 +3368,13 @@ def download_users(request):
                      status=CredentialApplication.Status.ACCEPTED
                  ).order_by('decision_datetime'),
                  to_attr='accepted_credentials'))
+
+    # Annotate the newsletter address rather than querying it per user
+    newsletter_emails = AssociatedEmail.objects.filter(
+        user=OuterRef('pk'), is_verified=True, newsletter_subscribed=True)
+    users = users.annotate(
+        newsletter_email=Subquery(newsletter_emails.values('email')[:1]),
+        newsletter_subscribed_at=Subquery(newsletter_emails.values('newsletter_subscribed_at')[:1]))
 
     # Use StreamingHttpResponse to stream data
     response = StreamingHttpResponse(
@@ -3314,7 +3417,9 @@ def generate_user_csv_data(users):
                   "credentialing_reference_email",
                   "credentialing_reference_org",
                   "credentialing_reference_response",
-                  "credentialing_research_summary"]
+                  "credentialing_research_summary",
+                  "newsletter_email",
+                  "newsletter_subscribed_at"]
 
     yield csv_header
 
@@ -3350,6 +3455,8 @@ def generate_user_csv_data(users):
                credentials.reference_organization if credentials else None,
                credentials.reference_response_text if credentials else None,
                credentials.research_summary if credentials else None,
+               user.newsletter_email,
+               user.newsletter_subscribed_at,
                ]
 
 
@@ -5135,3 +5242,367 @@ def skip_external_review(request, project_slug, *args, **kwargs):
         return redirect('edit_submission', project_slug=project.slug)
 
     return redirect('submission_info', project_slug=project.slug)
+
+
+USAGE_DESCRIPTION = (
+    'Counts registered users viewing dataset file-access pages. Cards, tables and monthly charts all count '
+    'sessions that started within the selected dates, in the site time zone. Published versions are combined '
+    'except in the per-version table. Anonymous views and direct cloud downloads are excluded. These counts do '
+    'not establish confirmed downloads or research use. Demographic definitions and coverage are explained '
+    'beside each metric.')
+
+
+def _metrics_form(request, record_dates):
+    today = timezone.localdate()
+    default_start = max(today.replace(month=1, day=1), record_dates['first'] or today.replace(month=1, day=1))
+    data = {'start_date': default_start, 'end_date': today, **request.GET.dict()}
+    return UsageDateForm(data, first_record_date=record_dates['first'])
+
+
+def _export_query(start, end, export):
+    return urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat(), 'export': export})
+
+
+def _sections_csv(sections, start, end, filename):
+    response = usage_csv(sections, start, end)
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+def _page_params(request, start, end):
+    """Query strings for the full CSV, the monthly CSV and in-page links."""
+    params = request.GET.copy()
+    params['start_date'] = start.isoformat()
+    params['end_date'] = end.isoformat()
+    params['export'] = 'csv'
+    export_query = params.urlencode()
+    params['export'] = 'monthly'
+    trend_export_query = params.urlencode()
+    params.pop('export')
+    return params, export_query, trend_export_query
+
+
+def _split_coverage(section):
+    """Separate rows without a recognized value from the table rows."""
+    section['unavailable_rows'] = [row for row in section['rows'] if not row.get('information_available', True)]
+    section['rows'] = [row for row in section['rows'] if row.get('information_available', True)]
+
+
+def _country_table(request, section, params, anchor):
+    """Show the top countries with an 'Other' row, or every country five per page when expanded."""
+    limit = 10
+    section['anchor'] = anchor
+    expanded = request.GET.get('show_all_countries') == '1' or 'country_page' in request.GET
+    rows = section['rows']
+    if len(rows) > limit or expanded:
+        query = params.copy()
+        query.pop('country_page', None)
+        if expanded:
+            query.pop('show_all_countries', None)
+        else:
+            query['show_all_countries'] = '1'
+        section['toggle_url'] = f'?{query.urlencode()}#{anchor}'
+        section['toggle_label'] = f'Show top {limit}' if expanded else 'View complete list'
+    if not expanded:
+        section['rows'] = rows[:limit]
+        section['table_note'] = f'Top {limit} countries with available information; the CSV contains every country.'
+        if len(rows) > limit:
+            count = sum(row['count'] for row in rows[limit:])
+            total = section.get('coverage_total') or sum(row['count'] for row in rows)
+            known = section.get('coverage_count') or total
+            section['rows'].append({
+                'label': f'Other countries ({len(rows) - limit})', 'count': count,
+                'percentage': round(100 * count / total, 2),
+                'available_percentage': round(100 * count / known, 2),
+            })
+        return
+    page = Paginator(rows, 5).get_page(request.GET.get('country_page'))
+    section.update({'rows': page.object_list, 'page': page})
+    for direction, available, number in (
+            ('previous', page.has_previous(), page.number - 1),
+            ('next', page.has_next(), page.number + 1)):
+        if available:
+            query = params.copy()
+            query['country_page'] = number
+            section[f'{direction}_url'] = f'?{query.urlencode()}#{anchor}'
+
+
+def _account_age_pie(section, start, end, empty_label=None):
+    section['pie_export_query'] = _export_query(start, end, 'account-age')
+    section['pie_chart'] = {
+        'type': 'pie', 'series': [{'name': row['label'], 'values': [row['count']], 'color': color}
+                                  for row, color in zip(section['rows'], ['#2563eb', '#ea580c', '#64748b'])]}
+    if empty_label:
+        section['pie_chart']['empty_label'] = empty_label
+
+
+def _approved_country_group(section, start, end):
+    """Report viewers without an approved application beside the country table, not inside it."""
+    no_approval = sum(row['count'] for row in section['unavailable_rows']
+                      if row['label'] == 'No approved credential application')
+    section['display_title'] = 'Registered viewers with an approved credential application'
+    section['approved_group_total'] = section['coverage_total'] - no_approval
+    section['approved_group_coverage'] = (
+        round(100 * section['coverage_count'] / section['approved_group_total'], 2)
+        if section['approved_group_total'] else None)
+    section['unavailable_rows'] = [row for row in section['unavailable_rows']
+                                   if row['label'] != 'No approved credential application']
+    section['without_approval'] = {
+        **section['country_trend']['without_approval'], 'total': no_approval,
+        'export_query': _export_query(start, end, 'unapproved-monthly')}
+
+
+@console_permission_required('project.can_view_stats')
+def usage_stats(request):
+    record_dates = usage_record_dates()
+    form = _metrics_form(request, record_dates)
+    context = {'form': form, 'sections': None, 'usage_record_dates': record_dates, 'report_title': 'Usage',
+               'report_description': USAGE_DESCRIPTION, 'report_group': 'usage'}
+    if not form.is_valid():
+        return render(request, 'console/usage_stats.html', context, status=400)
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    export = request.GET.get('export')
+    usage_trend = usage_trends(start, end)
+    if export == 'monthly':
+        return usage_trends_csv(usage_trend)
+    if export == 'category-monthly':
+        return usage_trends_csv(usage_category_trend(start, end, usage_trend), 'usage-category-monthly-stats.csv')
+    if export in ('country-monthly', 'unapproved-monthly'):
+        country = usage_country_trends(start, end, usage_trend)
+        if export == 'unapproved-monthly':
+            return usage_trends_csv(country['without_approval'], 'usage-without-approval-monthly-stats.csv')
+        return usage_trends_csv(country['export'], 'usage-country-monthly-stats.csv')
+
+    sections = usage_sections(usage_metrics(start, end), 'usage')
+    by_key = {section['key']: section for section in sections}
+
+    def rankings(key):
+        return by_key[key]['rows'] if key in by_key else []
+
+    if export in ('datasets-monthly', 'versions-monthly'):
+        trends = usage_dataset_trends(start, end, usage_trend, rankings('top_datasets'), rankings('versions'))
+        key = 'versions' if export == 'versions-monthly' else 'datasets'
+        return usage_trends_csv(trends[key], f'usage-{key}-monthly-stats.csv')
+    if export == 'account-age':
+        return _sections_csv([by_key['account_age']], start, end, 'usage-account-age-stats.csv')
+    if export == 'csv':
+        return _sections_csv(sections, start, end, 'usage-stats.csv')
+
+    params, export_query, trend_export_query = _page_params(request, start, end)
+    order = {'top_datasets': 1, 'account_age': 2}
+    sections = sorted((section for section in sections if not section.get('csv_only')),
+                      key=lambda section: order.get(section['key'], 0))
+    dataset_trends = usage_dataset_trends(start, end, usage_trend, rankings('top_datasets'), rankings('versions'))
+    demographics = usage_monthly_demographics(start, end, usage_trend)
+    for section in sections:
+        key = section['key']
+        if key in ('top_datasets', 'versions'):
+            trend = 'versions' if key == 'versions' else 'datasets'
+            section['dataset_trend'] = dataset_trends[trend]
+            section['dataset_trend_query'] = _export_query(start, end, trend + '-monthly')
+            section['rows'] = section['rows'][:10]
+            if key == 'versions':
+                section['anchor'] = 'viewers-by-version'
+            section['display_title'] = (
+                'Top 10 dataset versions by unique registered viewers' if key == 'versions'
+                else 'Top 10 datasets by unique registered viewers')
+        if key == 'account_age':
+            _account_age_pie(section, start, end)
+        if key == 'category':
+            section['category_trend'] = usage_category_trend(start, end, usage_trend, demographics)
+            section['category_export_query'] = _export_query(start, end, 'category-monthly')
+        if section['has_coverage']:
+            _split_coverage(section)
+        if key == 'country':
+            section['country_trend'] = usage_country_trends(start, end, usage_trend, demographics)
+            section['country_trend_query'] = _export_query(start, end, 'country-monthly')
+            if section['has_coverage']:
+                _approved_country_group(section, start, end)
+            _country_table(request, section, params, 'viewers-by-country')
+    return render(request, 'console/usage_stats.html', {
+        **context, 'sections': sections, 'usage_trend': usage_trend, 'export_query': export_query,
+        'trend_export_query': trend_export_query, 'date_query': urlencode(
+            {'start_date': start.isoformat(), 'end_date': end.isoformat()}),
+    })
+
+
+def _access_queue_context(request, queue, now):
+    queue_trend = pending_request_trend(queue, now)
+    summary = access_pending_summary(queue, now)
+    page = paginate(request, queue, 5)
+    summary_page = Paginator(summary['datasets'], 5).get_page(request.GET.get('dataset_page'))
+    query = request.GET.copy()
+    query.pop('page', None)
+    query.pop('export', None)
+    context = {
+        'queue_title': 'Current pending dataset access requests',
+        'queue_hide_status': True, 'queue_item_label': 'Dataset / version',
+        'queue_hide_snapshot': True, 'queue_date_only': True, 'queue_show_range': True,
+        'queue_id': 'current-access-queue', 'queue_anchor': 'current-access-queue',
+        'queue_description': 'Oldest requests first. Elapsed days since the request, not a service deadline. '
+                             'Individual ages are completed 24-hour days (floor), not rounded. '
+                             'This queue is current and is not filtered by the selected historical dates.',
+        'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
+        'queue_rows': access_queue_rows(page, now), 'queue_query': query.urlencode(),
+        'queue_trend': queue_trend,
+        'access_summary': summary,
+        'access_summary_rows': summary_page.object_list, 'access_summary_page': summary_page,
+        'queue_links': request.user.has_perm('project.can_view_access_logs'),
+    }
+    summary_query = request.GET.copy()
+    summary_query.pop('export', None)
+    for direction, available, number in (
+            ('previous', summary_page.has_previous(), summary_page.number - 1),
+            ('next', summary_page.has_next(), summary_page.number + 1)):
+        if available:
+            summary_query['dataset_page'] = number
+            context[f'access_summary_{direction}_url'] = f'?{summary_query.urlencode()}#pending-by-dataset'
+    return context
+
+
+@console_permission_required('project.can_view_stats')
+def access_request_stats(request):
+    export = request.GET.get('export')
+    # The pending queue is a current snapshot, independent of the selected dates.
+    if export in ('pending', 'pending-monthly', 'pending-datasets', 'pending-versions'):
+        now = timezone.now()
+        queue = list(pending_access_requests(now).only(
+            'id', 'request_datetime', 'requester_id', 'status', 'project_id', 'project__slug', 'project__version'))
+        if export == 'pending':
+            return queue_csv('pending-access', access_queue_rows(iter(queue), now), snapshot=now)
+        if export == 'pending-monthly':
+            return report_csv(pending_request_trend(queue, now))
+        return access_pending_summary_csv(access_pending_summary(queue, now), versions=export == 'pending-versions')
+
+    record_dates = access_record_dates()
+    form = _metrics_form(request, record_dates)
+    context = {'form': form, 'sections': None, 'record_dates': record_dates, 'report_title': 'Access requests',
+               'access_description': ACCESS_DESCRIPTION, 'report_group': 'access'}
+    if not form.is_valid():
+        return render(request, 'console/access_stats.html', context, status=400)
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    report = access_trend(start, end)
+    if export == 'monthly':
+        return report_csv(report)
+    if export in ('country-monthly', 'category-monthly'):
+        return report_csv(approved_user_trends(start, end)[export.split('-')[0]])
+
+    sections = usage_sections(access_metrics(start, end), 'access')
+    by_key = {section['key']: section for section in sections}
+    if export == 'account-age':
+        return _sections_csv([by_key['account_age']], start, end, 'access-account-age-stats.csv')
+    if export == 'csv':
+        return _sections_csv(sections, start, end, 'access-request-stats.csv')
+    demographics = approved_user_trends(start, end)
+
+    params, export_query, trend_export_query = _page_params(request, start, end)
+    coverage_references = {}
+    for section in sections:
+        key = section['key']
+        if key == 'account_age':
+            section['pie_id'] = 'access-account-age'
+            _account_age_pie(section, start, end, 'No approved users in the selected period.')
+        if key in ('country', 'category'):
+            section['access_trend'] = demographics[key]
+            section['access_trend_query'] = _export_query(start, end, key + '-monthly')
+        if section['has_coverage']:
+            _split_coverage(section)
+            # Sections over the same population share the same people without an approved application.
+            if [row['label'] for row in section['unavailable_rows']] == ['No approved credential application']:
+                if section['population'] in coverage_references:
+                    section['coverage_reference'] = coverage_references[section['population']]
+                else:
+                    coverage_references[section['population']] = section['title']
+        if key == 'country':
+            _country_table(request, section, params, 'approved-users-by-country')
+    now = timezone.now()
+    queue = list(pending_access_requests(now).only(
+        'id', 'request_datetime', 'requester_id', 'status', 'project_id', 'project__slug', 'project__version'))
+    return render(request, 'console/access_stats.html', {
+        **context, 'sections': sections, 'export_query': export_query, 'trend_export_query': trend_export_query,
+        'access_profile_sections': [s for s in sections if not s.get('pie_chart')],
+        'access_account_age_sections': [s for s in sections if s.get('pie_chart')],
+        'report': report, 'date_query': urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat()}),
+        **_access_queue_context(request, queue, now),
+    })
+
+
+@console_permission_required('project.can_view_stats')
+def training_stats(request):
+    export = request.GET.get('export')
+    # The review queue and expirations are current snapshots, independent of the selected dates.
+    snapshots = {'queue': review_queue, 'expiry': expiry_summary}
+    if export in snapshots:
+        summary = snapshots[export]()
+        return report_csv({'id': summary['id'], 'headers': ['Snapshot', *summary['headers']],
+                           'rows': [[timezone.localtime(summary['snapshot']).isoformat(), *row]
+                                    for row in summary['rows']]})
+    record_dates = training_record_dates()
+    form = _metrics_form(request, record_dates)
+    context = {'form': form, 'record_dates': record_dates, 'training_description': TRAINING_DESCRIPTION}
+    if not form.is_valid():
+        # The snapshots don't depend on the dates, so keep showing them
+        return render(request, 'console/training_stats.html', {
+            **context, 'queue': review_queue(), 'expiry': expiry_summary()}, status=400)
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    reports = {'monthly': submission_trend, 'approvals': approval_trend, 'review-time': review_time_trend,
+               'types': type_summary}
+    if export in reports:
+        return report_csv(reports[export](start, end))
+    return render(request, 'console/training_stats.html', {
+        **context, 'queue': review_queue(), 'expiry': expiry_summary(),
+        'trends': [(build(start, end), _export_query(start, end, key)) for key, build in reports.items()
+                   if key != 'types'],
+        'types': type_summary(start, end), 'types_query': _export_query(start, end, 'types'),
+    })
+
+
+@console_permission_required('project.can_view_stats')
+def user_stats(request):
+    if request.GET.get('export') == 'last-login':
+        summary = last_login_summary()
+        return report_csv({'id': 'users-last-login', 'headers': ['Snapshot', *summary['headers']],
+                           'rows': [[timezone.localtime(summary['snapshot']).isoformat(), *row]
+                                    for row in summary['rows']]})
+    record_dates = user_record_dates()
+    form = _metrics_form(request, record_dates)
+    context = {'form': form, 'record_dates': record_dates, 'user_description': USER_DESCRIPTION}
+    if not form.is_valid():
+        return render(request, 'console/user_stats.html', context, status=400)
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    report, total_report = user_trend(start, end)
+    export = request.GET.get('export')
+    if export == 'monthly':
+        return report_csv(report)
+    if export == 'total-monthly':
+        return report_csv(total_report)
+    return render(request, 'console/user_stats.html', {
+        **context, 'report': report, 'total_report': total_report, 'login_summary': last_login_summary(),
+        'trend_export_query': _export_query(start, end, 'monthly'),
+        'total_export_query': _export_query(start, end, 'total-monthly'),
+    })
+
+
+@console_permission_required('project.can_view_stats')
+def download_stats(request):
+    record_dates = download_record_dates()
+    form = _metrics_form(request, record_dates)
+    context = {'form': form, 'record_dates': record_dates, 'download_description': DOWNLOAD_DESCRIPTION}
+    if not form.is_valid():
+        return render(request, 'console/download_stats.html', context, status=400)
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    report = download_report(start, end)
+    exports = {'csv': 'ranking', 'monthly': 'trend', 'total-monthly': 'downloads_monthly',
+               'clients-monthly': 'clients_monthly', 'volume-monthly': 'volume_monthly', 'buckets': 'by_bucket'}
+    export = request.GET.get('export')
+    if export in exports:
+        return report_csv(report[exports[export]])
+    params, export_query, trend_export_query = _page_params(request, start, end)
+    return render(request, 'console/download_stats.html', {
+        **context, 'report': report, 'coverage': import_coverage(start, end),
+        'export_query': export_query, 'trend_export_query': trend_export_query,
+        'total_export_query': _export_query(start, end, 'total-monthly'),
+        'clients_export_query': _export_query(start, end, 'clients-monthly'),
+        'volume_export_query': _export_query(start, end, 'volume-monthly'),
+        'bucket_export_query': _export_query(start, end, 'buckets'),
+    })

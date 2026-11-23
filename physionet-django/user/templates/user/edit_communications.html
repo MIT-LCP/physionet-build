@@ -1,0 +1,41 @@
+{% extends "user/settings.html" %}
+
+{% block title %}Communications{% endblock %}
+
+{% block main_content %}
+<form action="{% url 'edit_communications' %}" method="post" class="form-signin no-pd">
+  <h1 class="form-signin-heading">Communications</h1>
+  <hr>
+  <h2 class="h4">Newsletter</h2>
+  <p>Our newsletter covers new datasets, events, challenges, and community news. If you subscribe, you can unsubscribe at any time, here or from the link in any newsletter.</p>
+  {% if subscribed_email %}
+    <p class="alert alert-info" id="newsletter-status">
+      You are subscribed at <strong>{{ subscribed_email.email }}</strong>{% if subscribed_email.newsletter_subscribed_at %} since {{ subscribed_email.newsletter_subscribed_at|date:"j M Y" }}{% endif %}.
+    </p>
+  {% else %}
+    <p class="alert alert-secondary" id="newsletter-status">
+      You are not subscribed to the newsletter.
+    </p>
+  {% endif %}
+  {% if has_verified_email %}
+    {% csrf_token %}
+    <div class="form-group">
+      <div class="custom-control custom-checkbox pl-4">
+        {{ form.newsletter }}
+        <label class="custom-control-label" for="{{ form.newsletter.id_for_label }}">{{ form.newsletter.label }}</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="{{ form.newsletter_email.id_for_label }}">{{ form.newsletter_email.label }}</label>
+      {{ form.newsletter_email }}
+      <small class="form-text text-muted">Only verified addresses are listed. You can add or verify addresses on the <a href="{% url 'edit_emails' %}">Emails</a> page.</small>
+      {% for error in form.newsletter_email.errors %}
+        <div class="alert alert-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <button class="btn btn-primary btn-rsp" type="submit">Save Changes</button>
+  {% else %}
+    <p>You need a verified email address to subscribe. Please verify an address on the <a href="{% url 'edit_emails' %}">Emails</a> page.</p>
+  {% endif %}
+</form>
+{% endblock %}

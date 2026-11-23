@@ -1,82 +1,19 @@
 {% extends "console/base_console.html" %}
 {% load static %}
-
 {% block content %}
-<div class="card mb-3">
-  <div class="card-header">
-    New projects (past 18 months)
-  </div>
-  <div class="card-body">
-    <div class="mb-4">
-      <a href="{% url 'submission_stats' %}?export=csv&amp;table=monthly" class="btn btn-md btn-success">Download CSV</a>
-    </div>
-    <div class="table-responsive">
-
-      <table class="table table-bordered">
-        <tr>
-          <th>Year</th>
-          <th>Month</th>
-          <th>Created</th>
-          <th>Submitted</th>
-          <th>Resubmitted</th>
-          <th>Published</th>
-          <th>Rejected</th>
-        </tr>
-        {% for year, month_list in stats.items%}
-          {% for month, val in month_list.items%}
-          <tr>
-            {% if forloop.first %}
-              <td style="font-weight:bold">{{ year }}</td>
-            {% else %}
-              <td> </td>
-            {% endif %}
-            <td>{{ month }}</td>
-            <td>{{ val.0 }}</td>
-            <td>{{ val.1 }}</td>
-            <td>{{ val.2 }}</td>
-            <td>{{ val.3 }}</td>
-            <td>{{ val.4 }}</td>
-          </tr>
-          {% endfor %}
-        {% endfor %}
-      </table>
-
-    </div>
-  </div>
+<div class="card mb-3"><div class="card-header">Submission metrics</div>
+  <div class="card-body"><p class="mb-0">Project activity and the people submitting project versions.</p></div>
 </div>
-
-<div class="card mb-3">
-  <div class="card-header">
-    Projects (past 6 years)
-  </div>
-  <div class="card-body">
-    <div class="mb-4">
-      <a href="{% url 'submission_stats' %}?export=csv&amp;table=yearly" class="btn btn-md btn-success">Download CSV</a>
-    </div>
-    <div class="table-responsive">
-
-      <table class="table table-bordered">
-        <tr>
-          <th>Year</th>
-          <th>Created</th>
-          <th>Submitted</th>
-          <th>Resubmitted</th>
-          <th>Published</th>
-          <th>Rejected</th>
-        </tr>
-        {% for year, val in yearly_stats.items %}
-          <tr>
-            <td>{{ year }}</td>
-            <td>{{ val.0 }}</td>
-            <td>{{ val.1 }}</td>
-            <td>{{ val.2 }}</td>
-            <td>{{ val.3 }}</td>
-            <td>{{ val.4 }}</td>
-          </tr>
-        {% endfor %}
-      </table>
-
-    </div>
-  </div>
-</div>
+{% include 'console/submission_filters.html' %}
+<p class="text-muted">* Current month and year are partial, through {{ snapshot_date }}. Columns count separate activities, not a conversion funnel.</p>
+{% include 'console/submission_activity_card.html' with chart=monthly_charts.created chart_id='submission-monthly-created' title='Created by month (past 18 months)' unit='month' chart_start=monthly_charts.start_date csv_query='export=csv&table=monthly' %}
+{% include 'console/submission_activity_card.html' with chart=monthly_charts.activity chart_id='submission-monthly-activity' title='Project activity by month (past 18 months)' unit='month' chart_start=monthly_charts.start_date csv_query='export=csv&table=monthly' %}
+{% include 'console/submission_activity_card.html' with chart=yearly_charts.created chart_id='submission-yearly-created' title='Created by year (past 6 years)' unit='year' chart_start=yearly_charts.start_date csv_query='export=csv&table=yearly' %}
+{% include 'console/submission_activity_card.html' with chart=yearly_charts.activity chart_id='submission-yearly-activity' title='Project activity by year (past 6 years)' unit='year' chart_start=yearly_charts.start_date csv_query='export=csv&table=yearly' %}
+{% include 'console/submission_contributors.html' %}
+{% endblock %}
+{% block local_js_bottom %}
+<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script>
+<script src="{% static 'console/js/metrics-trend.js' %}?v=3" defer></script>
+<script src="{% static 'console/js/metrics-chart-export.js' %}" defer></script>
 {% endblock %}

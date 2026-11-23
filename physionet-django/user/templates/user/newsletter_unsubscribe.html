@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Newsletter Subscription{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2>Newsletter Subscription</h2>
+  {% if not isvalid %}
+    <p>This unsubscribe link is not valid. If you have an account, you can manage your newsletter subscription in your <a href="{% url 'edit_communications' %}">communication settings</a>.</p>
+  {% elif unsubscribed %}
+    <p><strong>{{ email }}</strong> is not subscribed to the newsletter.</p>
+    <p>You can subscribe again at any time in your <a href="{% url 'edit_communications' %}">communication settings</a>.</p>
+  {% else %}
+    <p>Unsubscribe <strong>{{ email }}</strong> from the newsletter?</p>
+    <form method="post">
+      <button class="btn btn-primary" type="submit">Unsubscribe</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

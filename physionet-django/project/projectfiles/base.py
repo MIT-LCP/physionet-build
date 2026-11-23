@@ -1,6 +1,5 @@
 import abc
 
-from django.urls.base import reverse
 
 
 class BaseProjectFiles(abc.ABC):

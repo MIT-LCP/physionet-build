@@ -1,9 +1,8 @@
-import datetime
 from rest_framework import serializers
 from django.db import transaction
 
 from training.models import Course, Module, Quiz, QuizChoice, ContentBlock
-from user.models import Training, TrainingType
+from user.models import TrainingType
 from user.enums import RequiredField
 
 

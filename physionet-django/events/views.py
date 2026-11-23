@@ -16,8 +16,6 @@ from project.utility import get_form_errors
 from events.forms import AddEventForm, EventApplicationResponseForm, InviteCohostForm, CohostInvitationResponseForm
 from events.models import Event, EventApplication, EventParticipant, CohostInvitation
 from events.utility import notify_host_cohosts_new_registration
-from project.forms import InvitationResponseForm
-from django.http import Http404
 
 
 @login_required

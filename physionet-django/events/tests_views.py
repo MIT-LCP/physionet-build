@@ -1,5 +1,4 @@
 import datetime
-import logging
 
 from django.urls import reverse
 

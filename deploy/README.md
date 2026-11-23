@@ -396,6 +396,7 @@ The challenge submission pipeline uses GCS for file storage and a container orch
    ENABLE_CHALLENGES=True
    CHALLENGE_CONTAINER_BACKEND=local_docker
    CHALLENGE_STAGING_BUCKET=challenge-staging
+   CHALLENGE_EVAL_BUCKET=challenge-evaluation
    CHALLENGE_STORAGE_EMULATOR_HOST=http://localhost:4443
    ```
 

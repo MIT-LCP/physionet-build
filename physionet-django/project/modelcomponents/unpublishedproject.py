@@ -5,7 +5,6 @@ import shutil
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-from physionet.settings.base import StorageTypes
 from project.modelcomponents.metadata import Metadata
 from project.utility import StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH

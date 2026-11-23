@@ -1,0 +1,43 @@
+<div class="card mb-3" id="pending-by-dataset">
+  <div class="card-header">{{ access_summary.title }}{% include 'console/metrics_help.html' with title=access_summary.title description=access_summary.description %}</div>
+  <div class="card-body">
+    <p class="small text-muted">Showing {{ access_summary_page.start_index }}–{{ access_summary_page.end_index }} of {{ access_summary_page.paginator.count }} datasets. Totals include all datasets.</p>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead><tr><th scope="col">Dataset</th>{% for column in access_summary.columns %}<th scope="col">{{ column }}</th>{% endfor %}</tr></thead>
+        <tbody>
+        {% for dataset in access_summary_rows %}
+          <tr data-access-dataset="{{ dataset.label }}"><th scope="row" class="text-nowrap">{% if perms.project.change_publishedproject %}<a href="{% url 'published_projects_by_slug' dataset.label %}">{{ dataset.label }}</a>{% else %}{{ dataset.label }}{% endif %}</th>
+            {% include 'console/access_age_cells.html' with cells=dataset.cells %}
+          </tr>
+          <tr><td colspan="10">
+            <details><summary>Versions of {{ dataset.label }} ({{ dataset.versions|length }})</summary>
+              <table class="table table-bordered mt-2">
+                <thead><tr><th scope="col">Version</th>{% for column in access_summary.columns %}<th scope="col">{{ column }}</th>{% endfor %}</tr></thead>
+                <tbody>{% for version in dataset.versions %}<tr><th scope="row">{% if perms.project.change_publishedproject %}<a href="{% url 'manage_published_project' dataset.label version.label %}">{{ version.label }}</a>{% else %}{{ version.label }}{% endif %}</th>
+                  {% include 'console/access_age_cells.html' with cells=version.cells %}
+                </tr>{% endfor %}</tbody>
+              </table>
+            </details>
+          </td></tr>
+        {% empty %}<tr><td colspan="10">No pending requests.</td></tr>{% endfor %}
+        </tbody>
+        <tfoot><tr class="font-weight-bold"><th scope="row">All datasets</th>
+          {% include 'console/access_age_cells.html' with cells=access_summary.total.cells %}
+        </tr></tfoot>
+      </table>
+    </div>
+    {% if access_summary_page.has_other_pages %}
+    <nav class="mb-3" aria-label="Pending requests by dataset pages">
+      {% if access_summary_previous_url %}<a href="{{ access_summary_previous_url }}">Previous</a>{% endif %}
+      <span>Page {{ access_summary_page.number }} of {{ access_summary_page.paginator.num_pages }}</span>
+      {% if access_summary_next_url %}<a href="{{ access_summary_next_url }}">Next</a>{% endif %}
+    </nav>
+    {% endif %}
+    <div class="metrics-chart-downloads">
+      <a href="?export=pending-datasets" class="btn btn-sm metrics-download">Download datasets (CSV)</a>
+      <a href="?export=pending-versions" class="btn btn-sm metrics-download">Download versions (CSV)</a>
+    </div>
+    <noscript><p>{{ access_summary.description }}</p></noscript>
+  </div>
+</div>

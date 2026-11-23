@@ -1,12 +1,10 @@
 import base64
 
-from django.contrib.auth.views import LoginView
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 import re
-import pdb
 
 from user.models import User, AssociatedEmail
 from user.test_views import TestMixin, offset_system_clock
@@ -63,8 +61,6 @@ class TestPhoto(TestMixin):
     Test adding/removing profile photo.
     """
     def test_edit_photo(self):
-        text_data = b'blah blah'
-
         pbm_data = b'P4\n1 1\n\x00'
 
         png_data = base64.b64decode('''
@@ -258,7 +254,7 @@ class TestCredentialing(TestMixin):
         # Add and verify another email.
         self.client.login(username='admin@upr.edu', password='Very5trongt0t@11y')
         response = self.client.post(reverse('edit_emails'), data={'add_email':True, 'email': 'not_credentialed@upr.edu'})
-        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
+        uidb64, token = re.findall(r'verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
             mail.outbox[-1].body)[0]
         response = self.client.get(reverse('verify_email',
             kwargs={'uidb64':uidb64,'token':token}))
@@ -308,10 +304,10 @@ class TestCredentialing(TestMixin):
         """
         # Add and verify a credentialed email
         self.client.login(username='admin@mit.edu', password='Tester11!')
-        response = self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
-        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
+        self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
+        uidb64, token = re.findall(r'verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
             mail.outbox[-1].body)[0]
-        response = self.client.get(reverse('verify_email',
+        self.client.get(reverse('verify_email',
             kwargs={'uidb64':uidb64,'token':token}))
 
         # Check that the user is credentialed
@@ -323,10 +319,10 @@ class TestCredentialing(TestMixin):
         # Another person tries to add that same email hoping to get
         # automatic credentialing
         self.client.login(username='george@mit.edu', password='Tester11!')
-        response = self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
-        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
+        self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
+        uidb64, token = re.findall(r'verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
             mail.outbox[-1].body)[0]
-        response = self.client.get(reverse('verify_email',
+        self.client.get(reverse('verify_email',
             kwargs={'uidb64':uidb64,'token':token}))
 
         # The user is not automatically credentialed because the email's

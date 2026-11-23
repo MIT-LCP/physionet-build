@@ -8,7 +8,6 @@ from project.modelcomponents.activeproject import (
     ActiveProject,
     SubmissionStatus,
 )
-from project.modelcomponents.projecttype import ProjectType
 from project.modelcomponents.publishedproject import PublishedProject
 
 

@@ -1,6 +1,4 @@
 import logging
-import os
-import pdb
 from contextlib import nullcontext
 from datetime import datetime, date, timedelta
 from collections import defaultdict
@@ -19,8 +17,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.db import DatabaseError, IntegrityError, transaction
-from django.forms import CheckboxInput, HiddenInput, inlineformset_factory
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse, reverse_lazy
@@ -29,6 +26,7 @@ from django.utils.crypto import constant_time_compare, get_random_string
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from notification.utility import (
     credential_application_request,
@@ -44,7 +42,7 @@ from oauth2_provider.models import (
     get_device_grant_model,
     get_refresh_token_model,
 )
-from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
+from oauthlib.oauth2.rfc6749.errors import InvalidGrantError, OAuth2Error
 
 from physionet import utility
 from physionet.middleware.maintenance import (
@@ -54,7 +52,7 @@ from physionet.middleware.maintenance import (
 )
 from physionet.models import Section
 from physionet.settings.base import StorageTypes
-from project.models import Author, DUASignature, DUA, PublishedProject
+from project.models import Author, DUASignature, PublishedProject
 from training.forms import CourseForm
 from training.models import Course
 from requests_oauthlib import OAuth2Session
@@ -493,6 +491,68 @@ def edit_emails(request):
 
 
 @login_required
+def edit_communications(request):
+    """
+    Edit communication preferences, such as the newsletter subscription
+    """
+    user = request.user
+    form = forms.CommunicationsForm(user=user)
+
+    if request.method == 'POST':
+        form = forms.CommunicationsForm(user=user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your communication preferences have been updated.')
+            return redirect('edit_communications')
+
+    has_verified_email = user.associated_emails.filter(is_verified=True).exists()
+    # The saved subscription, shown as a status line above the form
+    subscribed_email = user.associated_emails.filter(
+        is_verified=True, newsletter_subscribed=True).first()
+    return render(request, 'user/edit_communications.html',
+                  {'form': form, 'has_verified_email': has_verified_email,
+                   'subscribed_email': subscribed_email})
+
+
+def mask_email(email):
+    """
+    Mask the local part of an email address, e.g. 'r***@example.com',
+    so a public page can identify the address without revealing it.
+    """
+    local, _, domain = email.rpartition('@')
+    return '{0}***@{1}'.format(local[:1], domain)
+
+
+# The token authenticates the request, and mail clients that support
+# one-click unsubscribe (RFC 8058) send a POST without a CSRF token.
+@csrf_exempt
+def newsletter_unsubscribe(request, token):
+    """
+    Unsubscribe an address from the newsletter without logging in.
+
+    A GET shows a confirmation button rather than unsubscribing, because
+    mail scanners follow links in messages automatically.
+    """
+    associated_email = AssociatedEmail.from_newsletter_unsubscribe_token(token)
+    if associated_email is None:
+        return render(request, 'user/newsletter_unsubscribe.html', {'isvalid': False}, status=404)
+
+    # The page is public, so anyone holding a forwarded link can see it
+    masked_email = mask_email(associated_email.email)
+
+    if request.method == 'POST':
+        associated_email.unsubscribe_from_newsletter()
+        logger.info('Unsubscribed email {0} of user {1} from the newsletter'.format(
+            associated_email.id, associated_email.user_id))
+        return render(request, 'user/newsletter_unsubscribe.html',
+                      {'isvalid': True, 'unsubscribed': True, 'email': masked_email})
+
+    return render(request, 'user/newsletter_unsubscribe.html',
+                  {'isvalid': True, 'unsubscribed': not associated_email.newsletter_subscribed,
+                   'email': masked_email})
+
+
+@login_required
 def edit_profile(request):
     """
     Edit the profile fields
@@ -822,6 +882,15 @@ def _fetch_and_validate_token(request, code, oauth_session):
     """
     Exchange code retrieved from ORCID for token and validate it
     """
+    # Keep ORCID's reply, so an unexpected one can be logged.
+    reply = {}
+
+    def remember_reply(response):
+        reply['response'] = response
+        return response
+
+    oauth_session.register_compliance_hook('access_token_response', remember_reply)
+
     try:
         client_secret = settings.ORCID_CLIENT_SECRET
         token = oauth_session.fetch_token(
@@ -829,24 +898,50 @@ def _fetch_and_validate_token(request, code, oauth_session):
             code=code,
             include_client_id=True,
             client_secret=client_secret,
+            timeout=10,
         )
-
-        try:
-            validators.validate_orcid_token(token['access_token'])
-            if settings.ORCID_LOGIN_ENABLED:
-                validators.validate_orcid_id_token(token['id_token'])
-
-            return True, token
-        except ValidationError as e:
-            logger.error(f'Validation Error: ORCID token validation failed. Error message: {e.message}')
-            messages.error(request, 'Validation Error: ORCID token validation failed.')
     except InvalidGrantError:
         messages.error(
             request,
             'Invalid Grant Error: authorization code may be expired or invalid.',
         )
+        return False, None
+    except (OAuth2Error, requests.RequestException) as e:
+        # For example, an error page instead of a token, or ORCID can't be reached.
+        logger.error('ORCID token request failed: %r. %s', e, _describe_orcid_reply(reply.get('response')))
+        messages.error(
+            request,
+            'ORCID did not respond as expected. Please try again in a few minutes.',
+        )
+        return False, None
+
+    try:
+        validators.validate_orcid_token(token['access_token'])
+        if settings.ORCID_LOGIN_ENABLED:
+            validators.validate_orcid_id_token(token['id_token'])
+
+        return True, token
+    except ValidationError as e:
+        logger.error(f'Validation Error: ORCID token validation failed. Error message: {e.message}')
+        messages.error(request, 'Validation Error: ORCID token validation failed.')
 
     return False, None
+
+
+def _describe_orcid_reply(response):
+    """
+    Describe ORCID's reply to a token request for the log: the status, content
+    type and the start of the body. The body is left out if it might hold a token,
+    in any letter case.
+    """
+    if response is None:
+        return 'No reply from ORCID.'
+    description = 'ORCID replied HTTP {} ({}).'.format(
+        response.status_code, response.headers.get('Content-Type', 'no content type'))
+    body = response.text
+    if 'token' not in body.lower():
+        description += ' Body: {!r}'.format(body[:300])
+    return description
 
 
 @disallow_during_maintenance

@@ -1,0 +1,8 @@
+<p class="small text-muted">* Partial {{ period }} through {{ snapshot_date|date:"F j, Y" }}; not directly comparable with complete periods.</p>
+<h3 class="h6">Created by {{ period }}</h3>
+<div data-metrics-chart="{{ created_id }}" data-label="Created project records by {{ period }}. Exact values are in the table below."></div>
+{{ charts.created|json_script:created_id }}
+<h3 class="h6 mt-3">Submissions, resubmissions, publications and rejections by {{ period }}</h3>
+<div data-metrics-chart="{{ activity_id }}" data-label="Project activity by {{ period }}. Exact values are in the table below."></div>
+{{ charts.activity|json_script:activity_id }}
+<p class="small text-muted">* Partial {{ period }} through {{ snapshot_date|date:"F j, Y" }}; not directly comparable with complete periods.</p>
