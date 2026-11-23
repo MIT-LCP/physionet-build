@@ -24,7 +24,9 @@ DATABASES = {
 
 # When ready, use the following:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'mail.ecg.mit.edu'
+# Send through the local mail server, as in production, so a slow or unreachable
+# relay delays delivery instead of the request that sends the email.
+EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
