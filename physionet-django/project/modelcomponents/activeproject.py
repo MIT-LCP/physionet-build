@@ -110,10 +110,14 @@ class ArchiveReason(models.IntegerChoices):
         """
         Reasons for which an editor may reopen an archived project.
 
-        Projects archived for these reasons were awaiting author
-        revisions when they were archived, and their files were kept.
+        Projects archived for these reasons retain their files and can be
+        restored to the submission status recorded when they were archived.
         """
         return (cls.ARCHIVED_BY_EDITOR, cls.REVISION_DEADLINE_PASSED)
+
+
+class ArchiveConflictError(Exception):
+    """Raised when a project changes before an archive can be recorded."""
 
 
 class SubmissionStatus(IntEnum):
@@ -226,6 +230,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     on_hold_datetime = models.DateTimeField(null=True, blank=True)
     archive_reason = models.PositiveSmallIntegerField(choices=ArchiveReason.choices, null=True, blank=True)
     archive_reason_text = models.TextField(null=True, blank=True)
+    # Submission status at the time of archiving; used to restore the project on reopen
+    archive_submission_status = models.PositiveSmallIntegerField(null=True, blank=True)
 
     # Deadline for the authors to resubmit, while awaiting revisions.
     revision_deadline = models.DateTimeField(null=True, blank=True)
@@ -457,25 +463,42 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def is_reopenable(self):
         """
-        Whether an editor may return the archived project to the authors
-        for revisions.
+        Whether an editor may restore an archived project to the
+        submission status it had when archived
         """
         return (self.submission_status == SubmissionStatus.ARCHIVED
                 and self.archive_reason in ArchiveReason.reopenable())
 
-    def reopen_for_revisions(self, deadline):
-        """
-        Return an archived project to the authors for revisions, with a new
-        revision deadline.
-        """
+    def reopen_status(self):
+        """Return the submission status that reopening will restore."""
+        # Archives created before archive_submission_status was introduced
+        # were only reopenable from the revisions workflow.
+        if self.archive_submission_status is None:
+            return SubmissionStatus.NEEDS_RESUBMISSION
+        return self.archive_submission_status
+
+    def reopen(self, deadline=None):
+        """Restore an archived project to the submission status it had when archived."""
         if not self.is_reopenable():
             raise Exception('ActiveProject cannot be reopened')
-        self.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+
+        restored_status = self.reopen_status()
+        if restored_status == SubmissionStatus.NEEDS_RESUBMISSION:
+            if deadline is None:
+                raise Exception('A revision deadline is required when reopening for revisions')
+            self.set_revision_deadline(deadline)
+        else:
+            self.revision_deadline = None
+            self.revision_reminders_sent = 0
+            self.revision_reminder_retry_emails = []
+
+        self.submission_status = restored_status
         self.archive_reason = None
         self.archive_reason_text = None
         self.archive_datetime = None
-        self.set_revision_deadline(deadline)
+        self.archive_submission_status = None
         self.save()
+        return restored_status
 
     def submission_status_label(self):
         return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
@@ -504,12 +527,30 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     def archive(self, archive_reason, archive_reason_text='', clear_files=False):
         """
         Archive the project. Sets the status of the project to "Archived" object.
+
+        Raises ArchiveConflictError if the submission status changed since this
+        instance was loaded, so a concurrent workflow update is never
+        overwritten.
         """
+        archived_status = self.submission_status
+        archive_datetime = timezone.now()
+        updated = type(self).objects.filter(
+            pk=self.pk, submission_status=archived_status
+        ).update(
+            archive_submission_status=archived_status,
+            submission_status=SubmissionStatus.ARCHIVED,
+            archive_reason=archive_reason,
+            archive_reason_text=archive_reason_text,
+            archive_datetime=archive_datetime,
+        )
+        if not updated:
+            raise ArchiveConflictError('Project changed before it could be archived')
+
+        self.archive_submission_status = archived_status
         self.submission_status = SubmissionStatus.ARCHIVED
         self.archive_reason = archive_reason
         self.archive_reason_text = archive_reason_text
-        self.archive_datetime = timezone.now()
-        self.save()
+        self.archive_datetime = archive_datetime
 
         # Reviewers should no longer be able to see the project
         self.anonymous.all().delete()
@@ -906,19 +947,32 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.authors.all().update(approval_datetime=None)
 
     def approve_author(self, author):
-        """"
+        """
         Approve an author. Move the project into the next state if the
         author is the final outstanding one. Return whether the
         process was successful.
         """
-        if self.submission_status == SubmissionStatus.NEEDS_APPROVAL and not author.approval_datetime:
+        with transaction.atomic():
+            project = type(self).objects.select_for_update().get(pk=self.pk)
+            if project.submission_status != SubmissionStatus.NEEDS_APPROVAL:
+                return False
+
+            author = project.authors.select_for_update().get(pk=author.pk)
+            if author.approval_datetime:
+                return False
+
             now = timezone.now()
             author.approval_datetime = now
             author.save()
-            if self.all_authors_approved():
-                self.author_approval_datetime = now
-                self.submission_status = SubmissionStatus.NEEDS_PUBLICATION
-                self.save()
+            if project.all_authors_approved():
+                project.author_approval_datetime = now
+                project.submission_status = SubmissionStatus.NEEDS_PUBLICATION
+                project.save(update_fields=['author_approval_datetime', 'submission_status'])
+
+            # Keep the caller's instance current without saving its possibly
+            # stale fields over a concurrent workflow change.
+            self.author_approval_datetime = project.author_approval_datetime
+            self.submission_status = project.submission_status
             return True
 
     def authors_missing_deposit_terms(self):

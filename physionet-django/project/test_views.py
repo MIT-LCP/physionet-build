@@ -54,6 +54,7 @@ from user.enums import TrainingStatus
 from user.models import Orcid, PersonalAccessToken, Training, TrainingType, User
 from user.test_views import TestMixin, prevent_request_warnings
 from project.views import ARCHIVE_VIEW_DAYS, _format_chart_data
+from project.modelcomponents.activeproject import ArchiveConflictError
 
 PROJECT_VIEWS = [
     'project_overview', 'project_authors', 'project_content',
@@ -1907,6 +1908,21 @@ class TestState(TestMixin):
                                             submission_status=SubmissionStatus.ARCHIVED)
         self.assertTrue(Author.objects.get(id=author_id).project == project)
         self.assertEqual(project.abstract, abstract)
+
+    def test_archive_conflict_does_not_show_delete_success(self):
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        url = reverse('project_overview', args=(project.slug,))
+
+        with mock.patch.object(
+                ActiveProject,
+                'archive',
+                side_effect=ArchiveConflictError('Project changed before it could be archived')):
+            response = self.client.post(url, data={'delete_project': ''})
+
+        self.assertRedirects(response, url, fetch_redirect_response=False)
+        project.refresh_from_db()
+        self.assertEqual(project.submission_status, SubmissionStatus.UNSUBMITTED)
 
     def test_submittable(self):
         """
