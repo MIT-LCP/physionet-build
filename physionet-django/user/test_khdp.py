@@ -12,12 +12,27 @@ Tests cover:
 from unittest.mock import Mock, patch
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
+from django.db import IntegrityError
 from django.test import TestCase, RequestFactory, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
-from user.models import KhdpAccount
+from user.linked_accounts import sync_user
+from user.models import KhdpAccount, LinkedAccount
+from user.test_linked_accounts import assert_linked_account_matches
 
 User = get_user_model()
+
+
+def create_khdp_account(user, public_uuid):
+    return KhdpAccount.objects.create(
+        user=user,
+        public_uuid=public_uuid,
+        khdp_user_id=f'{public_uuid}-user',
+        name='Old Name',
+        affiliation='Old Org',
+        email='old@khdp.com',
+    )
 
 
 class KhdpEditViewTests(TestCase):
@@ -71,6 +86,23 @@ class KhdpEditViewTests(TestCase):
         self.assertEqual(len(messages), 1)
         self.assertIn('configuration is incomplete', str(messages[0]))
 
+    def test_unlink_deletes_both_rows(self):
+        """Unlinking deletes the KhdpAccount and LinkedAccount rows, and no one else's."""
+        create_khdp_account(self.user, 'khdp-public-uuid-own')
+        sync_user(self.user, LinkedAccount.Provider.KHDP)
+        other_user = User.objects.create_user(username='otheruser', email='other@example.com', password='testpass123')
+        create_khdp_account(other_user, 'khdp-public-uuid-other')
+        sync_user(other_user, LinkedAccount.Provider.KHDP)
+        self.client.force_login(self.user)
+
+        response = self.client.post(reverse('edit_khdp'), {'remove_khdp': '1'})
+
+        messages = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertEqual(messages, ['Your KHDP account has been unlinked.'])
+        self.assertFalse(KhdpAccount.objects.filter(user=self.user).exists())
+        self.assertFalse(LinkedAccount.objects.filter(user=self.user).exists())
+        assert_linked_account_matches(self, other_user, LinkedAccount.Provider.KHDP)
+
 
 @override_settings(
     KHDP_CLIENT_ID='test-client-id',
@@ -109,6 +141,27 @@ class KhdpAuthCallbackTests(TestCase):
             'orcid': '0000-0001-2345-6789',
             'physionetId': 'pn-uuid-123',
         }
+
+    def run_callback(self, token_response=None):
+        """Log in and run the callback with KHDP's token and userinfo replies mocked."""
+        self.client.force_login(self.user)
+        session = self.client.session
+        session['khdp_nonce'] = 'test-nonce-12345678901234567890'
+        session.save()
+
+        mock_post_response = Mock()
+        mock_post_response.status_code = 201
+        mock_post_response.json.return_value = token_response or self.mock_token_response
+        mock_get_response = Mock()
+        mock_get_response.status_code = 200
+        mock_get_response.json.return_value = self.mock_userinfo_response
+        with patch('user.views.requests.post', return_value=mock_post_response):
+            with patch('user.views.requests.get', return_value=mock_get_response):
+                return self.client.get(reverse('auth_khdp'), {'code': 'test-auth-code'})
+
+    def assert_nothing_linked(self):
+        self.assertFalse(KhdpAccount.objects.filter(user=self.user).exists())
+        self.assertFalse(LinkedAccount.objects.filter(user=self.user).exists())
 
     def test_auth_khdp_requires_login(self):
         """Test that auth_khdp requires authentication."""
@@ -475,6 +528,73 @@ class KhdpAuthCallbackTests(TestCase):
         self.assertEqual(account.public_uuid, 'khdp-public-uuid-missing-userid')
         self.assertEqual(account.khdp_user_id, '')
         self.assertEqual(account.name, 'No UserId')
+
+    def test_linking_copies_the_link_to_linked_accounts(self):
+        """The new link is also saved in LinkedAccount."""
+        self.run_callback()
+
+        assert_linked_account_matches(self, self.user, LinkedAccount.Provider.KHDP)
+        linked = LinkedAccount.objects.get(user=self.user, provider=LinkedAccount.Provider.KHDP)
+        self.assertEqual(linked.external_id, 'khdp-public-uuid-123')
+        self.assertEqual(linked.access_token, 'mock-access-token')
+
+    def test_update_existing_khdp_account_updates_linked_account(self):
+        """Linking again updates the user's LinkedAccount row."""
+        create_khdp_account(self.user, 'khdp-public-uuid-123')
+        sync_user(self.user, LinkedAccount.Provider.KHDP)
+        first = LinkedAccount.objects.get(user=self.user, provider=LinkedAccount.Provider.KHDP)
+
+        self.run_callback()
+
+        assert_linked_account_matches(self, self.user, LinkedAccount.Provider.KHDP)
+        linked = LinkedAccount.objects.get(user=self.user, provider=LinkedAccount.Provider.KHDP)
+        self.assertEqual(linked.pk, first.pk)
+        self.assertEqual(linked.provider_data['name'], 'Test User')
+
+    def test_khdp_account_in_linked_accounts_of_another_user(self):
+        """
+        Another user has a LinkedAccount row with this publicUuid but no KhdpAccount
+        row. The view checks KhdpAccount first, so this stands in for another user
+        linking the same account at the same moment: only the database refuses it.
+        """
+        other_user = User.objects.create_user(username='otheruser', email='other@example.com', password='testpass123')
+        other_linked = LinkedAccount.objects.create(
+            user=other_user, provider=LinkedAccount.Provider.KHDP, external_id='khdp-public-uuid-123',
+            linked_at=timezone.now(),
+        )
+
+        response = self.run_callback()
+
+        # The KhdpAccount row saved before the refusal is rolled back.
+        self.assertEqual(response.url, reverse('edit_khdp'))
+        messages = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertEqual(messages, ['This KHDP account is already linked to another user.'])
+        self.assert_nothing_linked()
+        self.assertEqual(
+            list(LinkedAccount.objects.filter(external_id='khdp-public-uuid-123').values_list('pk', flat=True)),
+            [other_linked.pk],
+        )
+
+    def test_other_database_error_saves_nothing(self):
+        """An IntegrityError that is not a clash shows the generic message and saves nothing."""
+        with patch('user.views.sync_user', side_effect=IntegrityError('test error')):
+            with self.assertLogs('user.views', 'ERROR'):
+                response = self.run_callback()
+
+        messages = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertEqual(messages, ['Failed to save KHDP account.'])
+        self.assert_nothing_linked()
+
+    def test_unusable_token_expiry_saves_nothing(self):
+        """An expiry that LinkedAccount can't store shows the generic message and saves nothing."""
+        token_response = dict(self.mock_token_response, expires_in=-10**10)
+
+        with self.assertLogs('user.views', 'ERROR'):
+            response = self.run_callback(token_response)
+
+        messages = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertEqual(messages, ['Failed to save KHDP account.'])
+        self.assert_nothing_linked()
 
 
 class KhdpModelTests(TestCase):

@@ -978,6 +978,56 @@ class KhdpAccount(models.Model):
         return f"KHDP Account: {self.name} ({identifier})"
 
 
+class LinkedAccount(models.Model):
+    """
+    An account at an outside identity provider (ORCID or KHDP) linked to a user.
+
+    This table is meant to replace Orcid and KhdpAccount. For now it is only
+    filled from them (see user/linked_accounts.py) and nothing reads it.
+
+    external_id is the provider's identifier for the account: the ORCID iD,
+    or the KHDP publicUuid. provider_data holds the other fields kept from
+    the provider, never tokens. Token columns are null when the provider
+    gave no value.
+    """
+    class Provider(models.TextChoices):
+        ORCID = 'orcid', 'ORCID'
+        KHDP = 'khdp', 'KHDP'
+
+    user = models.ForeignKey('user.User', related_name='linked_accounts', on_delete=models.CASCADE)
+    provider = models.CharField(max_length=20, choices=Provider.choices)
+    external_id = models.CharField(max_length=255)
+    # Copied from the old tables, so this is set explicitly and not
+    # auto_now_add.
+    linked_at = models.DateTimeField()
+    access_token = models.CharField(max_length=1024, null=True, blank=True)
+    refresh_token = models.CharField(max_length=1024, null=True, blank=True)
+    token_type = models.CharField(max_length=50, null=True, blank=True)
+    token_scope = models.CharField(max_length=512, null=True, blank=True)
+    token_expires_at = models.DateTimeField(null=True, blank=True)
+    provider_data = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        default_permissions = ()
+        constraints = [
+            models.UniqueConstraint(
+                fields=['provider', 'external_id'],
+                name='linkedaccount_unique_provider_external_id',
+            ),
+            models.UniqueConstraint(
+                fields=['user', 'provider'],
+                name='linkedaccount_unique_user_provider',
+            ),
+            models.CheckConstraint(
+                condition=~Q(external_id=''),
+                name='linkedaccount_external_id_not_blank',
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_provider_display()} account {self.external_id} of user {self.user_id}"
+
+
 class CredentialApplication(models.Model):
     """
     An application to become credentialed

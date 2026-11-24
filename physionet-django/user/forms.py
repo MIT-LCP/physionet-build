@@ -27,6 +27,7 @@ from user.models import (
     AssociatedEmail,
     CloudInformation,
     CredentialApplication,
+    LinkedAccount,
     Profile,
     User,
     Training,
@@ -37,6 +38,7 @@ from user.models import (
     Orcid,
 )
 from user.backends import is_login_limited
+from user.linked_accounts import sync_user
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
 from user.validators import (
@@ -1034,6 +1036,9 @@ class TrainingForm(forms.ModelForm):
         return training
 
 
+ORCID_ID_LINKED_MESSAGE = 'This ORCID iD is already linked to an account.'
+
+
 class OrcidRegistrationForm(RegistrationForm):
     """
     Form to register new user after signing in with ORCID.
@@ -1048,7 +1053,7 @@ class OrcidRegistrationForm(RegistrationForm):
     def clean(self):
         cleaned_data = super().clean()
         if Orcid.objects.filter(orcid_id=self.orcid_token.get('orcid')).exists():
-            raise forms.ValidationError('This ORCID iD is already linked to an account.')
+            raise forms.ValidationError(ORCID_ID_LINKED_MESSAGE)
         return cleaned_data
 
     def save(self):
@@ -1063,6 +1068,7 @@ class OrcidRegistrationForm(RegistrationForm):
             orcid_profile.token_scope = self.orcid_token.get('scope')
             orcid_profile.token_expiration = self.orcid_token.get('expires_at')
             orcid_profile.save()
+            sync_user(user, LinkedAccount.Provider.ORCID)
         return user
 
 
