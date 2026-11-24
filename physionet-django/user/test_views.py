@@ -1399,6 +1399,7 @@ class TestDeleteAccount(TestCase):
             ('user', 'profile', 'user'),
             ('user', 'orcid', 'user'),
             ('user', 'khdpaccount', 'user'),
+            ('user', 'linkedaccount', 'user'),
             ('user', 'cloudinformation', 'user'),
             ('user', 'codeofconductsignature', 'user'),
             ('user', 'legacycredential', 'migrated_user'),

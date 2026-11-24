@@ -18,8 +18,10 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.auth.models import AnonymousUser
 from django.core import mail
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import NoReverseMatch, resolve, reverse
+from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 import requests
@@ -28,7 +30,9 @@ from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
 from physionet.urls import urlpatterns as root_urlpatterns
 from user import views
-from user.models import Orcid
+from user.linked_accounts import sync_user
+from user.models import LinkedAccount, Orcid
+from user.test_linked_accounts import assert_linked_account_matches
 
 User = get_user_model()
 
@@ -79,6 +83,18 @@ def orcid_login_urlpatterns():
 
 # URL configuration for OrcidLoginTests: the ORCID login routes plus the site's own.
 urlpatterns = orcid_login_urlpatterns() + root_urlpatterns
+
+
+def create_other_user_linked_account(username, orcid_id):
+    """
+    Give another user a LinkedAccount row with this iD, but no Orcid row. The
+    views check the Orcid table first, so this stands in for another user
+    linking the same iD at the same moment: only the database refuses it.
+    """
+    other = User.objects.create_user(username=username, email=f'{username}@example.com', password='testpass123')
+    return LinkedAccount.objects.create(
+        user=other, provider=LinkedAccount.Provider.ORCID, external_id=orcid_id, linked_at=timezone.now(),
+    )
 
 
 @override_settings(**ORCID_SETTINGS)
@@ -348,18 +364,86 @@ class OrcidLinkTests(TestCase):
         self.assertEqual(orcid.access_token, NEW_ACCESS_TOKEN)
         self.assertFalse(Orcid.objects.filter(orcid_id=ORCID_TOKEN['orcid']).exists())
 
-    def test_link_malformed_id_leaves_an_empty_row(self):
-        # Records current behavior: for a user with no Orcid row, auth_orcid saves a
-        # new row before full_clean(), so a malformed iD raises ValidationError (a
-        # server error) and leaves a row with an empty orcid_id. A later change that
-        # validates before saving will change this; update the test then.
+    def test_link_malformed_id_saves_nothing(self):
+        # A malformed iD still raises ValidationError (a server error), but the row
+        # is validated before it is saved, so nothing is left behind.
         with self.assertLogs('django.request', 'ERROR'):
             with self.assertRaises(ValidationError):
                 self.link(dict(ORCID_TOKEN, orcid='not-an-orcid-id'))
 
-        orcid = Orcid.objects.get(user=self.user)
-        self.assertEqual(orcid.orcid_id, '')
-        self.assertEqual(orcid.access_token, '')
+        self.assertFalse(Orcid.objects.filter(user=self.user).exists())
+        self.assertFalse(LinkedAccount.objects.filter(user=self.user).exists())
+
+    def test_link_copies_the_link_to_linked_accounts(self):
+        self.link(ORCID_TOKEN)
+
+        assert_linked_account_matches(self, self.user, LinkedAccount.Provider.ORCID)
+        linked = LinkedAccount.objects.get(user=self.user, provider=LinkedAccount.Provider.ORCID)
+        self.assertEqual(linked.external_id, ORCID_TOKEN['orcid'])
+        self.assertEqual(linked.access_token, ORCID_TOKEN['access_token'])
+
+    def test_link_different_id_updates_linked_account(self):
+        self.link(ORCID_TOKEN)
+        first = LinkedAccount.objects.get(user=self.user, provider=LinkedAccount.Provider.ORCID)
+
+        self.link(dict(ORCID_TOKEN, orcid=OTHER_ORCID_ID, name='New Name', access_token=NEW_ACCESS_TOKEN))
+
+        assert_linked_account_matches(self, self.user, LinkedAccount.Provider.ORCID)
+        linked = LinkedAccount.objects.get(user=self.user, provider=LinkedAccount.Provider.ORCID)
+        self.assertEqual(linked.pk, first.pk)
+        self.assertEqual(linked.external_id, OTHER_ORCID_ID)
+        self.assertEqual(linked.provider_data, {'name': 'New Name'})
+
+    def test_link_id_in_linked_accounts_of_another_user_is_refused(self):
+        other_linked = create_other_user_linked_account('orcidother', ORCID_TOKEN['orcid'])
+
+        response = self.link(ORCID_TOKEN)
+
+        # The Orcid row saved before the refusal is rolled back.
+        self.assert_link_refused(response)
+        self.assertFalse(Orcid.objects.filter(user=self.user).exists())
+        self.assertFalse(LinkedAccount.objects.filter(user=self.user).exists())
+        self.assertEqual(
+            list(LinkedAccount.objects.filter(external_id=ORCID_TOKEN['orcid']).values_list('pk', flat=True)),
+            [other_linked.pk],
+        )
+
+    def test_link_id_in_linked_accounts_of_another_user_keeps_own_link(self):
+        own_link = Orcid.objects.create(user=self.user, orcid_id=OTHER_ORCID_ID, name='Own Name')
+        sync_user(self.user, LinkedAccount.Provider.ORCID)
+        create_other_user_linked_account('orcidother', ORCID_TOKEN['orcid'])
+
+        response = self.link(ORCID_TOKEN)
+
+        self.assert_link_refused(response)
+        own_link.refresh_from_db()
+        self.assertEqual(own_link.orcid_id, OTHER_ORCID_ID)
+        self.assertEqual(own_link.name, 'Own Name')
+        assert_linked_account_matches(self, self.user, LinkedAccount.Provider.ORCID)
+
+    def test_link_other_database_error_saves_nothing(self):
+        # An IntegrityError that is not a clash with another user's link is not
+        # hidden behind the "in use" message.
+        with patch('user.views.sync_user', side_effect=IntegrityError('test error')):
+            with self.assertLogs('django.request', 'ERROR'):
+                with self.assertRaises(IntegrityError):
+                    self.link(ORCID_TOKEN)
+
+        self.assertFalse(Orcid.objects.filter(user=self.user).exists())
+        self.assertFalse(LinkedAccount.objects.filter(user=self.user).exists())
+
+    def test_link_own_id_again_other_database_error_keeps_own_link(self):
+        # The user's own rows hold the iD, which is not a clash with another user.
+        Orcid.objects.create(user=self.user, orcid_id=ORCID_TOKEN['orcid'], name='Own Name')
+        sync_user(self.user, LinkedAccount.Provider.ORCID)
+
+        with patch('user.views.sync_user', side_effect=IntegrityError('test error')):
+            with self.assertLogs('django.request', 'ERROR'):
+                with self.assertRaises(IntegrityError):
+                    self.link(dict(ORCID_TOKEN, name='New Name'))
+
+        self.assertEqual(Orcid.objects.get(user=self.user).name, 'Own Name')
+        assert_linked_account_matches(self, self.user, LinkedAccount.Provider.ORCID)
 
     def test_link_id_of_another_user_is_refused(self):
         other_link = self.create_other_user_link()
@@ -482,6 +566,18 @@ class OrcidLinkTests(TestCase):
         messages = [str(m) for m in get_messages(response.wsgi_request)]
         self.assertEqual(messages, ['Object Does Not Exist Error: tried to unlink an object which does not exist.'])
         self.assertEqual(Orcid.objects.count(), orcid_count)
+
+    def test_unlink_deletes_linked_account(self):
+        Orcid.objects.create(user=self.user, orcid_id=OTHER_ORCID_ID)
+        sync_user(self.user, LinkedAccount.Provider.ORCID)
+        other_link = self.create_other_user_link()
+        sync_user(other_link.user, LinkedAccount.Provider.ORCID)
+
+        self.client.post(reverse('edit_orcid'), {'remove_orcid': '1'})
+
+        self.assertFalse(Orcid.objects.filter(user=self.user).exists())
+        self.assertFalse(LinkedAccount.objects.filter(user=self.user).exists())
+        assert_linked_account_matches(self, other_link.user, LinkedAccount.Provider.ORCID)
 
 
 @override_settings(
@@ -775,6 +871,56 @@ class OrcidLoginTests(TestCase):
         self.assertFalse(User.objects.filter(username='orcidagain').exists())
         self.assertEqual(Orcid.objects.filter(orcid_id=LOGIN_TOKEN['orcid']).count(), 1)
 
+    def test_register_copies_the_link_to_linked_accounts(self):
+        self.login(LOGIN_TOKEN)
+
+        self.client.post(reverse('orcid_register'), {
+            'email': 'orcidnew@example.com', 'username': 'orcidnew', 'first_names': 'Orcid', 'last_name': 'New',
+            'privacy_policy': 'on',
+        })
+
+        user = User.objects.get(email='orcidnew@example.com')
+        assert_linked_account_matches(self, user, LinkedAccount.Provider.ORCID)
+        linked = LinkedAccount.objects.get(user=user, provider=LinkedAccount.Provider.ORCID)
+        self.assertEqual(linked.external_id, LOGIN_TOKEN['orcid'])
+
+    def test_register_id_in_linked_accounts_is_refused(self):
+        other_linked = create_other_user_linked_account('orcidother', LOGIN_TOKEN['orcid'])
+        self.login(LOGIN_TOKEN)
+
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidnew@example.com', 'username': 'orcidnew', 'first_names': 'Orcid', 'last_name': 'New',
+            'privacy_policy': 'on',
+        })
+
+        # The user and Orcid row saved before the refusal are rolled back.
+        self.assert_register_refused(response)
+        self.assertFalse(User.objects.filter(email='orcidnew@example.com').exists())
+        self.assertFalse(User.objects.filter(username='orcidnew').exists())
+        self.assertFalse(Orcid.objects.filter(orcid_id=LOGIN_TOKEN['orcid']).exists())
+        self.assertEqual(
+            list(LinkedAccount.objects.filter(external_id=LOGIN_TOKEN['orcid']).values_list('pk', flat=True)),
+            [other_linked.pk],
+        )
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(self.client.session['orcid_token'], LOGIN_TOKEN)
+
+    def test_register_other_database_error_creates_nothing(self):
+        # An IntegrityError that is not a clash with another user's link is not
+        # hidden behind the form error.
+        self.login(LOGIN_TOKEN)
+        with patch('user.forms.sync_user', side_effect=IntegrityError('test error')):
+            with self.assertLogs('django.request', 'ERROR'):
+                with self.assertRaises(IntegrityError):
+                    self.client.post(reverse('orcid_register'), {
+                        'email': 'orcidnew@example.com', 'username': 'orcidnew', 'first_names': 'Orcid',
+                        'last_name': 'New', 'privacy_policy': 'on',
+                    })
+
+        self.assertFalse(User.objects.filter(username='orcidnew').exists())
+        self.assertFalse(Orcid.objects.filter(orcid_id=LOGIN_TOKEN['orcid']).exists())
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_activation_with_valid_link(self):
         user = self.create_linked_user(is_active=False)
         self.assertFalse(user.associated_emails.get(is_primary_email=True).is_verified)
@@ -896,9 +1042,9 @@ class OrcidUserHelperTests(TestCase):
 
     def test_helpers_with_empty_id(self):
         # Records current behavior: has_orcid() only checks that a row exists, so a
-        # row with an empty iD (as test_link_malformed_id_leaves_an_empty_row shows
-        # auth_orcid can leave) counts as linked. A later change may treat it as not
-        # linked; update the test then.
+        # row with an empty iD (which auth_orcid could leave before it validated
+        # the iD first, and which may still exist in old data) counts as linked. A
+        # later change may treat it as not linked; update the test then.
         Orcid.objects.create(user=self.user, orcid_id='')
         user = self.fresh_user()
 

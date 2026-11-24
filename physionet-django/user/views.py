@@ -58,6 +58,7 @@ from training.models import Course
 from requests_oauthlib import OAuth2Session
 from user import forms, validators
 from user.awsverification import aws_verification_available
+from user.linked_accounts import LinkedAccountError, held_by_another_user, sync_user
 from user.models import (
     AssociatedEmail,
     CodeOfConduct,
@@ -65,6 +66,7 @@ from user.models import (
     CloudInformation,
     CredentialApplication,
     LegacyCredential,
+    LinkedAccount,
     Orcid,
     KhdpAccount,
     PersonalAccessToken,
@@ -769,7 +771,9 @@ def edit_orcid(request):
 
         if 'remove_orcid' in request.POST:
             try:
-                Orcid.objects.get(user=request.user).delete()
+                with transaction.atomic():
+                    Orcid.objects.get(user=request.user).delete()
+                    sync_user(request.user, LinkedAccount.Provider.ORCID)
                 orcid_html = None
             except ObjectDoesNotExist:
                 messages.error(request, 'Object Does Not Exist Error: tried to unlink an object which does not exist.')
@@ -816,7 +820,7 @@ def auth_orcid(request):
             return redirect('edit_orcid')
 
         if orcid_profile is None:
-            orcid_profile, _ = Orcid.objects.get_or_create(user=request.user)
+            orcid_profile = Orcid.objects.filter(user=request.user).first() or Orcid(user=request.user)
 
         orcid_profile.orcid_id = orcid_id
         orcid_profile.name = token.get('name')
@@ -825,8 +829,17 @@ def auth_orcid(request):
         orcid_profile.token_type = token.get('token_type')
         orcid_profile.token_scope = token.get('scope')
         orcid_profile.token_expiration = token.get('expires_at')
+        # Validate before saving, so that a malformed iD saves nothing.
         orcid_profile.full_clean()
-        orcid_profile.save()
+        try:
+            with transaction.atomic():
+                orcid_profile.save()
+                sync_user(request.user, LinkedAccount.Provider.ORCID)
+        except IntegrityError:
+            # Caught outside the atomic block, so both saves are rolled back.
+            if not held_by_another_user(request.user, LinkedAccount.Provider.ORCID, orcid_id):
+                raise
+            messages.error(request, 'This ORCID account is already in use by another account!')
 
     return redirect('edit_orcid')
 
@@ -967,7 +980,16 @@ def orcid_register(request):
         form = forms.OrcidRegistrationForm(request.POST, orcid_token=orcid_token)
 
         if form.is_valid():
-            user = form.save()
+            try:
+                user = form.save()
+            except IntegrityError:
+                # Two sign-ups with the same iD at the same moment both pass the form's
+                # check; the database refuses the second, and nothing of it is saved.
+                if not held_by_another_user(None, LinkedAccount.Provider.ORCID, orcid_token.get('orcid')):
+                    raise
+                form.add_error(None, forms.ORCID_ID_LINKED_MESSAGE)
+                return render(request, 'user/orcid_register.html', {'form': form})
+
             request.session.pop('orcid_token', None)
             uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
@@ -1714,7 +1736,9 @@ def edit_khdp(request):
 
         elif request.POST.get('remove_khdp'):
             try:
-                KhdpAccount.objects.get(user=request.user).delete()
+                with transaction.atomic():
+                    KhdpAccount.objects.get(user=request.user).delete()
+                    sync_user(request.user, LinkedAccount.Provider.KHDP)
                 messages.success(request, 'Your KHDP account has been unlinked.')
             except KhdpAccount.DoesNotExist:
                 messages.error(
@@ -1876,7 +1900,9 @@ def auth_khdp(request):
 
     try:
         account.full_clean()
-        account.save()
+        with transaction.atomic():
+            account.save()
+            sync_user(request.user, LinkedAccount.Provider.KHDP)
         logger.info(
             "KHDP account linked for user %s (khdp_user_id=%s)",
             request.user.username,
@@ -1886,7 +1912,14 @@ def auth_khdp(request):
     except ValidationError as e:
         logger.error("KHDP account validation failed: %s", str(e), exc_info=True)
         messages.error(request, 'Invalid KHDP account data received.')
-    except (IntegrityError, DatabaseError) as e:
+    except IntegrityError as e:
+        # Caught outside the atomic block, so both saves are rolled back.
+        if held_by_another_user(request.user, LinkedAccount.Provider.KHDP, public_uuid):
+            messages.error(request, 'This KHDP account is already linked to another user.')
+        else:
+            logger.error("KHDP account save failed: %s", str(e), exc_info=True)
+            messages.error(request, 'Failed to save KHDP account.')
+    except (DatabaseError, LinkedAccountError) as e:
         logger.error("KHDP account save failed: %s", str(e), exc_info=True)
         messages.error(request, 'Failed to save KHDP account.')
 
