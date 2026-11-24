@@ -1,5 +1,7 @@
 <div class="alert alert-danger col-md-8" role="alert">
-  {% if project.georestricted and user_country_blocked %}
+  {% if must_sign_in %}
+    Please <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">sign in</a> to access the files.
+  {% elif project.georestricted and user_country_blocked %}
     <p><strong>Data Not Available</strong></p>
     <p>Data is not available in your region due to legal or policy restrictions.</p>
   {% else %}

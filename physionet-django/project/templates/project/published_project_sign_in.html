@@ -1,0 +1,5 @@
+<div class="alert alert-info col-md-8" role="alert">
+  Please <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">sign in</a> to access the files.
+  Once you are signed in, this page shows the download options, including commands for downloading
+  from your terminal with your username and password.
+</div>
