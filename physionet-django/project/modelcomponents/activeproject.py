@@ -116,6 +116,10 @@ class ArchiveReason(models.IntegerChoices):
         return (cls.ARCHIVED_BY_EDITOR, cls.REVISION_DEADLINE_PASSED)
 
 
+class ArchiveConflictError(Exception):
+    """Raised when a project changes before an archive can be recorded."""
+
+
 class SubmissionStatus(IntEnum):
     """
     Numeric codes to indicate submission status of a project.
@@ -524,8 +528,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Archive the project. Sets the status of the project to "Archived" object.
 
-        Returns False if the submission status changed since this instance was
-        loaded, so a concurrent workflow update is never overwritten.
+        Raises ArchiveConflictError if the submission status changed since this
+        instance was loaded, so a concurrent workflow update is never
+        overwritten.
         """
         archived_status = self.submission_status
         archive_datetime = timezone.now()
@@ -539,7 +544,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             archive_datetime=archive_datetime,
         )
         if not updated:
-            return False
+            raise ArchiveConflictError('Project changed before it could be archived')
 
         self.archive_submission_status = archived_status
         self.submission_status = SubmissionStatus.ARCHIVED
@@ -553,8 +558,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         if clear_files:
             self.clear_files()
-
-        return True
 
     def place_on_hold(self):
         """Place the submission on hold without changing its status."""
@@ -944,19 +947,32 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.authors.all().update(approval_datetime=None)
 
     def approve_author(self, author):
-        """"
+        """
         Approve an author. Move the project into the next state if the
         author is the final outstanding one. Return whether the
         process was successful.
         """
-        if self.submission_status == SubmissionStatus.NEEDS_APPROVAL and not author.approval_datetime:
+        with transaction.atomic():
+            project = type(self).objects.select_for_update().get(pk=self.pk)
+            if project.submission_status != SubmissionStatus.NEEDS_APPROVAL:
+                return False
+
+            author = project.authors.select_for_update().get(pk=author.pk)
+            if author.approval_datetime:
+                return False
+
             now = timezone.now()
             author.approval_datetime = now
             author.save()
-            if self.all_authors_approved():
-                self.author_approval_datetime = now
-                self.submission_status = SubmissionStatus.NEEDS_PUBLICATION
-                self.save()
+            if project.all_authors_approved():
+                project.author_approval_datetime = now
+                project.submission_status = SubmissionStatus.NEEDS_PUBLICATION
+                project.save(update_fields=['author_approval_datetime', 'submission_status'])
+
+            # Keep the caller's instance current without saving its possibly
+            # stale fields over a concurrent workflow change.
+            self.author_approval_datetime = project.author_approval_datetime
+            self.submission_status = project.submission_status
             return True
 
     def authors_missing_deposit_terms(self):

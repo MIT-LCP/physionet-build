@@ -22,7 +22,7 @@ from django.utils import timezone
 from django.utils.formats import date_format
 from console.forms import CredentialReviewForm
 from console.views import snapshot_files, submission_file_changes
-from project.modelcomponents.activeproject import ArchiveReason
+from project.modelcomponents.activeproject import ArchiveConflictError, ArchiveReason
 from events.models import EventAgreement
 from project.fields import SafeHTMLField
 from project.modelcomponents.coreproject import exists_project_slug
@@ -34,6 +34,7 @@ from project.models import (
     DUASignature,
     ExternalReview,
     Funding,
+    InternalNote,
     PublishedProject,
     Reference,
     ReviewerInvitation,
@@ -599,6 +600,35 @@ class TestState(TestMixin):
                                                      submission_status=SubmissionStatus.ARCHIVED))
         self.assertFalse(ActiveProject.objects.filter(slug=project.slug,
                                                       submission_status=SubmissionStatus.NEEDS_DECISION))
+
+    def test_edit_reject_rolls_back_when_archiving_conflicts(self):
+        """A conflicting archive must not record a rejection or notify authors."""
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        project.submit(author_comments='')
+        editor = User.objects.get(username='admin')
+        project.assign_editor(editor)
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save()
+        self.client.login(username='admin', password='Tester11!')
+        mail.outbox.clear()
+
+        with mock.patch.object(
+                ActiveProject,
+                'archive',
+                side_effect=ArchiveConflictError('Project changed before it could be archived')):
+            response = self.client.post(reverse(
+                'edit_submission', args=(project.slug,)), data={
+                'soundly_produced': 0, 'well_described': 0, 'open_format': 1,
+                'data_machine_readable': 0, 'reusable': 1, 'no_phi': 0,
+                'pn_suitable': 1, 'editor_comments': 'Just bad.', 'decision': 0,
+            })
+
+        self.assertRedirects(response, reverse('edit_submission', args=(project.slug,)),
+                             fetch_redirect_response=False)
+        project.refresh_from_db()
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_DECISION)
+        self.assertIsNone(project.edit_logs.get().decision_datetime)
+        self.assertEqual(mail.outbox, [])
 
     def test_edit(self):
         """
@@ -2328,6 +2358,30 @@ class TestOnHold(TestMixin):
         self.assertNotIn(project, response.context['reviewer_assignment_projects'])
         self.assertIn(project, response.context['on_hold_projects'])
 
+    def test_archived_on_hold_project_is_hidden_until_reopened(self):
+        """Archiving retains on-hold state without leaving the project queued."""
+        project = self._submit_and_assign(self.EDITOR_USER)
+        project.place_on_hold()
+        project.archive(archive_reason=ArchiveReason.ARCHIVED_BY_EDITOR)
+
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('submitted_projects'))
+        self.assertNotIn(project, response.context['on_hold_projects'])
+
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        response = self.client.get(reverse('editor_home'))
+        self.assertNotIn(project, response.context['on_hold_projects'])
+
+        project.reopen()
+
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('submitted_projects'))
+        self.assertIn(project, response.context['on_hold_projects'])
+
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        response = self.client.get(reverse('editor_home'))
+        self.assertIn(project, response.context['on_hold_projects'])
+
 
 class TestDUALogs(TestMixin):
     """Test DUA Logs console views."""
@@ -2891,11 +2945,26 @@ class TestArchivePermission(TestMixin):
             self.assertEqual(project.submission_status, SubmissionStatus.ARCHIVED)
             self.assertEqual(project.archive_submission_status, status)
 
+            if status == SubmissionStatus.NEEDS_COPYEDIT:
+                response = self.client.get(url)
+                self.assertContains(
+                    response,
+                    'You can reopen it to submission accepted; awaiting editor copyedits.',
+                )
+                self.assertNotContains(response, 'copyedits..')
+
             response = self.client.post(url, {'reopen_project': ''})
             self.assertRedirects(response, url, fetch_redirect_response=False)
             project.refresh_from_db()
             self.assertEqual(project.submission_status, status)
             self.assertIsNone(project.archive_submission_status)
+            if status == SubmissionStatus.NEEDS_COPYEDIT:
+                note = InternalNote.objects.filter(project=project).latest('created_at')
+                self.assertEqual(
+                    note.content,
+                    'Reopened to submission accepted; awaiting editor copyedits '
+                    '(archived: Archived by editor).',
+                )
             if status == SubmissionStatus.NEEDS_APPROVAL:
                 self.assertEqual(
                     {email.to[0] for email in mail.outbox},

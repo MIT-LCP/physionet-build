@@ -103,7 +103,7 @@ import project.tasks as project_tasks
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
-from project.modelcomponents.activeproject import ArchiveReason
+from project.modelcomponents.activeproject import ArchiveConflictError, ArchiveReason
 from user.forms import AssociatedEmailChoiceForm
 from user.models import (
     AssociatedEmail,
@@ -264,7 +264,8 @@ def submitted_projects(request):
     # Awaiting editor publish
     publish_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_PUBLICATION, is_on_hold=False)
     # Projects on hold
-    on_hold_projects = projects.filter(is_on_hold=True)
+    on_hold_projects = projects.filter(is_on_hold=True).exclude(
+        submission_status=SubmissionStatus.ARCHIVED)
 
     assign_editor_form = forms.AssignEditorForm()
 
@@ -332,7 +333,8 @@ def editor_home(request):
     # Awaiting editor publish
     publish_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_PUBLICATION, is_on_hold=False)
     # Projects on hold
-    on_hold_projects = projects.filter(is_on_hold=True)
+    on_hold_projects = projects.filter(is_on_hold=True).exclude(
+        submission_status=SubmissionStatus.ARCHIVED)
 
     # Time to check if the reminder email can be sent
     yesterday = timezone.now() + timezone.timedelta(days=-1)
@@ -563,7 +565,7 @@ def submission_info_card_params(request,
         ),
         'reopen_status_label': ActiveProject.SUBMISSION_STATUS_LABELS[
             project.reopen_status()
-        ],
+        ].rstrip('.'),
         'archivable_submission_statuses': ARCHIVABLE_SUBMISSION_STATUSES,
         'revision_deadline_form': revision_deadline_form or forms.RevisionDeadlineForm(
             initial={'revision_deadline': default_revision_deadline_date(project)}),
@@ -700,7 +702,7 @@ def submission_info(request, project_slug):
         else:
             archive_reason = project.get_archive_reason_display()
             restored_status = project.reopen()
-            restored_status_label = ActiveProject.SUBMISSION_STATUS_LABELS[restored_status]
+            restored_status_label = ActiveProject.SUBMISSION_STATUS_LABELS[restored_status].rstrip('.')
             if restored_status == SubmissionStatus.NEEDS_APPROVAL:
                 notification.copyedit_complete_notify(
                     request, project, project.copyedit_logs.last(), reopened=True)
@@ -769,9 +771,11 @@ def submission_info(request, project_slug):
         archive_reason_text = request.POST.get('archive_reason', '').strip()
         send_email = request.POST.get('send_email', False)
 
-        if not project.archive(
+        try:
+            project.archive(
                 archive_reason=ArchiveReason.ARCHIVED_BY_EDITOR,
-                archive_reason_text=archive_reason_text):
+                archive_reason_text=archive_reason_text)
+        except ArchiveConflictError:
             messages.error(request, 'The project changed before it could be archived. Please try again.')
             return redirect(f'{request.path}?tab=archive')
 
@@ -827,7 +831,11 @@ def edit_submission(request, project_slug, *args, **kwargs):
             data=request.POST)
         if edit_submission_form.is_valid():
             # This processes the resulting decision
-            edit_log = edit_submission_form.save()
+            try:
+                edit_log = edit_submission_form.save()
+            except ArchiveConflictError:
+                messages.error(request, 'The project changed before the decision could be recorded. Please try again.')
+                return redirect(request.path)
             # Set the display labels for the quality assurance results
             edit_log.set_quality_assurance_results()
             # The original object will be deleted if the decision is reject

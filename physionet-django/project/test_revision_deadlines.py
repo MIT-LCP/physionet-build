@@ -14,7 +14,10 @@ from django.utils.formats import date_format
 
 from notification.models import Notification
 import notification.utility as notification_utility
-from project.models import ActiveProject, ArchiveReason, InternalNote, RevisionType, SubmissionStatus
+from project.models import (
+    ActiveProject, ArchiveConflictError, ArchiveReason, InternalNote,
+    RevisionType, SubmissionStatus,
+)
 from user.models import User
 from user.test_views import TestMixin
 
@@ -136,12 +139,24 @@ class TestRevisionDeadlineModel(RevisionDeadlineTestMixin):
             author_approval_datetime=approval_datetime,
         )
 
-        self.assertFalse(
-            stale_project.archive(archive_reason=ArchiveReason.ARCHIVED_BY_EDITOR))
+        with self.assertRaises(ArchiveConflictError):
+            stale_project.archive(archive_reason=ArchiveReason.ARCHIVED_BY_EDITOR)
 
         self.project.refresh_from_db()
         self.assertEqual(self.project.submission_status, SubmissionStatus.NEEDS_PUBLICATION)
         self.assertEqual(self.project.author_approval_datetime, approval_datetime)
+
+    def test_stale_author_approval_does_not_restore_an_archived_project(self):
+        self.project.submission_status = SubmissionStatus.NEEDS_APPROVAL
+        self.project.save()
+        stale_project = ActiveProject.objects.get(pk=self.project.pk)
+        author = stale_project.authors.order_by('display_order').first()
+
+        self.project.archive(archive_reason=ArchiveReason.ARCHIVED_BY_EDITOR)
+
+        self.assertFalse(stale_project.approve_author(author))
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.submission_status, SubmissionStatus.ARCHIVED)
 
 
 @override_settings(REVISION_REMINDER_DAYS=(30, 7))

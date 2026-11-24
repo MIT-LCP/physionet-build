@@ -58,7 +58,7 @@ from project.models import (
     AWS,
     AWSAccessPointUser,
 )
-from project.modelcomponents.activeproject import ArchiveReason
+from project.modelcomponents.activeproject import ArchiveConflictError, ArchiveReason
 from project.modelcomponents.depositterms import (
     DepositTermsAcceptance,
     DepositTermsUnavailable,
@@ -466,7 +466,11 @@ def project_overview(request, project_slug, **kwargs):
     under_submission = project.under_submission()
 
     if request.method == 'POST' and 'delete_project' in request.POST and is_submitting and not under_submission:
-        project.archive(archive_reason=ArchiveReason.DELETED_BY_AUTHOR, clear_files=True)
+        try:
+            project.archive(archive_reason=ArchiveReason.DELETED_BY_AUTHOR, clear_files=True)
+        except ArchiveConflictError:
+            messages.error(request, 'The project changed before it could be deleted. Please try again.')
+            return redirect('project_overview', project_slug=project.slug)
         return redirect('delete_project_success')
 
     return render(request, 'project/project_overview.html',
