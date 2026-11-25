@@ -185,20 +185,23 @@ class TokenAPITests(TestCase):
 
     def test_token_access_is_opt_in_per_view(self):
         """
-        OAuth tokens are not a default way to authenticate API views, and
-        personal tokens are accepted only by views that list them, so
-        the access status endpoint (which reveals credentialing status)
-        treats a token holder as anonymous.
+        Tokens are not a default way to authenticate API views: a view
+        accepts them only if it lists a token authentication class. The
+        access status endpoint opts in, and answers a personal token for
+        the token's own account.
         """
-        self.assertNotIn(
+        defaults = settings.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"]
+        for token_class in (
             "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
-            settings.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"],
-        )
+            "user.token_auth.PersonalAccessTokenAuthentication",
+            "user.token_auth.AccountStatusTokenAuthentication",
+        ):
+            self.assertNotIn(token_class, defaults)
         _, personal_token = PersonalAccessToken.create_for_user(self.user, ["data:download"])
         url = reverse("published_project_access_status", args=["demobsn", "1.0"])
         response = self.client.get(url, HTTP_AUTHORIZATION=f"Bearer {personal_token}")
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(response.json()["authenticated"])
+        self.assertTrue(response.json()["authenticated"])
 
     def test_oauth_tokens_do_not_log_in_to_site_pages(self):
         """

@@ -16,7 +16,9 @@ from rest_framework.test import APIClient
 from project.authorization.access import can_access_project, get_access_requirements
 from project.models import AccessPolicy, CoreProject, DataAccessRequest, DUASignature, PublishedProject, ProjectType
 from user.enums import RequiredField, TrainingStatus
-from user.models import CredentialApplication, Training, TrainingType, User
+from oauth.clients import PYTHON_CLIENT_ID
+from project.utility import DOWNLOAD_TOKEN_SCOPE
+from user.models import CredentialApplication, PersonalAccessToken, Training, TrainingType, User
 
 
 class ProjectAccessStatusTests(TestCase):
@@ -207,21 +209,90 @@ class ProjectAccessStatusTests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Basic {token}')
         self.assertEqual(self.client.get(self.url()).status_code, 401)
 
-    def test_oauth_token_does_not_reveal_account_state(self):
-        """OAuth clients use the scoped OAuth endpoints, so a bearer token is treated as anonymous."""
-        app = Application.objects.create(
-            name='Access test client', user=self.user, client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
-        )
+    def oauth_token(self, token, scope, application=None, expires_in=timedelta(hours=1)):
+        """An OAuth access token for self.user, from a third-party application unless one is given."""
+        if application is None:
+            application = Application.objects.create(
+                name='Third-party client', user=self.user, client_type=Application.CLIENT_CONFIDENTIAL,
+                authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            )
         AccessToken.objects.create(
-            user=self.user, application=app, token='access-test-token',
-            scope='profile:read credentialing:read', expires=timezone.now() + timedelta(hours=1),
+            user=self.user, application=application, token=token, scope=scope,
+            expires=timezone.now() + expires_in,
         )
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer access-test-token')
-        response = self.client.get(self.url())
+        return token
+
+    def get_with_bearer(self, token):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        return self.client.get(self.url())
+
+    def assert_account_status(self, response):
+        """The response describes self.user's own access, not an anonymous visitor's."""
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['authenticated'])
+        self.assertEqual(response.json()['status'], 'action_required')
+        self.assertEqual(self.requirements(response)['credentialing']['status'], 'required')
+
+    def assert_anonymous_status(self, response):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()['authenticated'])
         self.assertEqual(self.requirements(response)['credentialing']['status'], 'unknown')
+
+    def test_personal_access_token_reads_its_own_account_status(self):
+        """The user created the token for themselves, so any scope may read their own status."""
+        _, token = PersonalAccessToken.create_for_user(self.user, [DOWNLOAD_TOKEN_SCOPE])
+        self.assert_account_status(self.get_with_bearer(token))
+
+    def test_personal_token_cannot_select_another_account(self):
+        other = User.objects.create_user(
+            email='other-access-test@example.com', username='otheruser',
+            password='other-password', is_active=True,
+        )
+        other.is_credentialed = True
+        other.save(update_fields=['is_credentialed'])
+        _, token = PersonalAccessToken.create_for_user(self.user, [DOWNLOAD_TOKEN_SCOPE])
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+
+        response = self.client.get(self.url(), {'username': other.username, 'user_id': other.pk})
+
+        self.assert_account_status(response)
+
+    def test_invalid_or_expired_personal_access_token_is_401(self):
+        record, token = PersonalAccessToken.create_for_user(self.user, [DOWNLOAD_TOKEN_SCOPE])
+        record.expires = timezone.now() - timedelta(seconds=1)
+        record.save(update_fields=['expires'])
+        self.assertEqual(self.get_with_bearer(token).status_code, 401)
+        self.assertEqual(self.get_with_bearer(PersonalAccessToken.PREFIX + 'not-a-real-token').status_code, 401)
+
+    def test_personal_access_token_of_an_inactive_account_is_401(self):
+        _, token = PersonalAccessToken.create_for_user(self.user, [DOWNLOAD_TOKEN_SCOPE])
+        self.user.is_active = False
+        self.user.save(update_fields=['is_active'])
+        self.assertEqual(self.get_with_bearer(token).status_code, 401)
+
+    def test_python_package_sign_in_reads_its_own_account_status(self):
+        """Tokens from PhysioNet's own applications need no extra scope."""
+        python_client = Application.objects.get(client_id=PYTHON_CLIENT_ID)
+        token = self.oauth_token('python-client-token', 'data:download profile:read', application=python_client)
+        self.assert_account_status(self.get_with_bearer(token))
+
+    def test_third_party_token_with_credentialing_read_reads_account_status(self):
+        token = self.oauth_token('third-party-credentialing', 'profile:read credentialing:read')
+        self.assert_account_status(self.get_with_bearer(token))
+
+    def test_third_party_token_without_credentialing_read_is_anonymous(self):
+        """The user did not let this application read their credentialing or training status."""
+        for scope in ('profile:read', 'data:download', 'profile:read data:download'):
+            with self.subTest(scope=scope):
+                token = self.oauth_token(f'third-party-{scope}', scope)
+                self.assert_anonymous_status(self.get_with_bearer(token))
+
+    def test_invalid_or_expired_oauth_token_is_401(self):
+        python_client = Application.objects.get(client_id=PYTHON_CLIENT_ID)
+        expired = self.oauth_token('expired-python-client-token', 'data:download', application=python_client,
+                                   expires_in=-timedelta(seconds=1))
+        self.assertEqual(self.get_with_bearer(expired).status_code, 401)
+        self.assertEqual(self.get_with_bearer('not-a-real-token').status_code, 401)
 
     def test_session_login_is_authenticated(self):
         self.client.force_login(self.user)

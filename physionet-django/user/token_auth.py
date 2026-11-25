@@ -9,11 +9,17 @@ scopes allow.
 """
 
 from oauth2_provider.models import AbstractAccessToken
+from oauth2_provider.oauth2_backends import get_oauthlib_core
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import BasePermission
 
+from oauth.clients import FIRST_PARTY_CLIENT_IDS
 from user.models import PersonalAccessToken
+
+# The scope that lets a third-party OAuth application read a user's
+# credentialing and training status.
+CREDENTIALING_READ_SCOPE = 'credentialing:read'
 
 
 class PersonalAccessTokenAuthentication(BaseAuthentication):
@@ -39,6 +45,62 @@ class PersonalAccessTokenAuthentication(BaseAuthentication):
         if record is None:
             raise AuthenticationFailed('Invalid or expired token.')
         return (record.user, record)
+
+    def authenticate_header(self, request):
+        return 'Bearer realm="api"'
+
+
+def _bearer_token(request):
+    """The bearer token sent with a request, or None."""
+    parts = get_authorization_header(request).split()
+    if len(parts) != 2 or parts[0].lower() != b'bearer':
+        return None
+    try:
+        return parts[1].decode('ascii')
+    except UnicodeDecodeError:
+        return None
+
+
+class AccountStatusTokenAuthentication(BaseAuthentication):
+    """
+    Authenticate bearer tokens that may read the account's own access status.
+
+    Accepted, as the token's user:
+        - a personal access token, whatever its scopes: the user created it
+          for themselves;
+        - an OAuth token issued to one of PhysioNet's own applications
+          (oauth.clients.FIRST_PARTY_CLIENT_IDS), such as the Python package;
+        - any other OAuth token with the credentialing:read scope.
+
+    A valid token that is none of these (for example a third-party token
+    with only profile:read) is ignored, so the request is answered as
+    anonymous: the user did not let that application read their
+    credentialing or training status. An invalid or expired token is
+    rejected with 401, as wrong Basic credentials are, so clients know to
+    refresh it.
+    """
+
+    def authenticate(self, request):
+        token = _bearer_token(request)
+        if token is None:
+            return None
+        if token.startswith(PersonalAccessToken.PREFIX):
+            record = PersonalAccessToken.authenticate(token)
+            if record is None:
+                raise AuthenticationFailed('Invalid or expired token.')
+            return (record.user, record)
+
+        valid, oauth_request = get_oauthlib_core().verify_request(request, scopes=[])
+        if not valid:
+            raise AuthenticationFailed('Invalid or expired token.')
+        access_token = oauth_request.access_token
+        if not access_token.user.is_active:
+            raise AuthenticationFailed('Invalid or expired token.')
+        application = access_token.application
+        first_party = application is not None and application.client_id in FIRST_PARTY_CLIENT_IDS
+        if first_party or access_token.allow_scopes([CREDENTIALING_READ_SCOPE]):
+            return (access_token.user, access_token)
+        return None
 
     def authenticate_header(self, request):
         return 'Bearer realm="api"'

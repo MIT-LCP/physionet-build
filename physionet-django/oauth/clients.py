@@ -10,6 +10,11 @@ is fixed so that the package works with any PhysioNet site.
 PYTHON_CLIENT_ID = "physionet-python-client"
 PYTHON_CLIENT_NAME = "PhysioNet Python package"
 
+# OAuth applications that PhysioNet itself provides. Their users are the
+# account owners, so their tokens may read the account's own access status
+# (see user.token_auth.AccountStatusTokenAuthentication).
+FIRST_PARTY_CLIENT_IDS = frozenset({PYTHON_CLIENT_ID})
+
 # Scopes that a device flow client may request, and the scopes it gets
 # if it does not ask for any.
 DEVICE_FLOW_SCOPES = {"data:download", "profile:read"}
