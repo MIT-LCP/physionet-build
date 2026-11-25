@@ -30,7 +30,7 @@ from export.serializers import (
 )
 from search.views import get_content
 from user.models import PersonalAccessToken
-from user.token_auth import PersonalAccessTokenAuthentication
+from user.token_auth import AccountStatusTokenAuthentication, PersonalAccessTokenAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -174,12 +174,16 @@ class ProjectAccessStatus(APIView):
         - project_url: full URL to the project page
 
     Authentication:
-        - Session or Basic authentication. OAuth tokens are not accepted, because the
-          response reveals credentialing and training status.
+        - Session or Basic authentication.
+        - Bearer tokens that may read the account's own access status: personal access
+          tokens, tokens issued to PhysioNet's own applications (such as the Python
+          package), and other OAuth tokens with the credentialing:read scope. Other
+          bearer tokens are answered as anonymous, because the response reveals
+          credentialing and training status. An invalid or expired token is a 401.
         - Rate limited: 100 requests/hour for authenticated users
         - Rate limited: 20 requests/hour for anonymous users
     """
-    authentication_classes = [BasicAuthentication, SessionOnlyAuthentication]
+    authentication_classes = [BasicAuthentication, AccountStatusTokenAuthentication, SessionOnlyAuthentication]
     throttle_classes = [StandardRateThrottle, StandardAnonRateThrottle]
 
     def get(self, request, project_slug, version):
