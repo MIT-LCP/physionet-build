@@ -21,6 +21,11 @@ PhysioNet provides a read-only REST API for metadata about published projects (d
   - [Check access to a project version](#check-access-to-a-project-version)
   - [Download the SHA256SUMS.txt file](#download-the-sha256sumstxt-file)
 - [Annotation endpoints](#annotation-endpoints)
+  - [Create a collection](#create-a-collection)
+  - [Create an annotation type](#create-an-annotation-type)
+  - [Create an annotation](#create-an-annotation)
+  - [Location types](#location-types)
+  - [Annotation errors](#annotation-errors)
 - [Legacy endpoints](#legacy-endpoints)
 - [Other APIs](#other-apis)
 
@@ -273,17 +278,178 @@ Returns `403` if you don't have access to the project, and `404` if the project 
 
 ## Annotation endpoints
 
-These endpoints create annotations on published project files. They accept only personal access tokens or OAuth tokens (`Authorization: Bearer ...`), with the scope listed for each endpoint.
+These endpoints create annotations on published project files. An annotation belongs to a **collection**, has a **type** that defines its labels and the kind of location it uses, and points to a **location** within a project file.
 
-| Endpoint | Scope | Creates |
+They accept only personal access tokens or OAuth tokens (`Authorization: Bearer ...`), with the scope listed for each endpoint, and expect a JSON request body (`Content-Type: application/json`). Successful requests return `201 Created` with the created object.
+
+| Endpoint | Scope |
+|---|---|
+| `POST /api/annotations/collection/create/` | `annotations:collections:write` |
+| `POST /api/annotations/type/create/` | `annotations:types:write` |
+| `POST /api/annotations/collections/{collection_slug}/` | `annotations:annotations:write` |
+
+### Create a collection
+
+```
+POST /api/annotations/collection/create/
+```
+
+| Field | Required | Description |
 |---|---|---|
-| `POST /api/annotations/collection/create/` | `annotations:collections:write` | An annotation collection: `slug`, `name`, `description` |
-| `POST /api/annotations/type/create/` | `annotations:types:write` | An annotation type: `slug`, `name`, `description`, `label_schema` (JSON Schema for labels), `allowed_location_type`, `version` |
-| `POST /api/annotations/collections/{collection_slug}/` | `annotations:annotations:write` | An annotation in a collection: `annotation_type` (slug), `project` (slug), `file_path`, `labels`, `location` |
+| `slug` | Yes, in practice | Unique identifier, used in the URL to add annotations to the collection |
+| `name` | Yes | Name |
+| `description` | No | Description |
 
-`location` is an object whose `location_type` is `timeseries_interval`, `image_bbox` or `text_span`, with the fields for that type. Successful requests return `201 Created` with the created object.
+Example:
 
-> TODO: add request and response examples for each annotation endpoint, and the fields of each location type.
+```
+curl -X POST https://physionet.org/api/annotations/collection/create/ \
+  -H "Authorization: Bearer pnpat_..." \
+  -H "Content-Type: application/json" \
+  -d '{"slug": "example-ecg-beats", "name": "Example ECG beat annotations", "description": "Beat labels for an example ECG record."}'
+```
+
+```json
+{
+  "id": "eb5423b6-987a-4b2d-b9d6-196855d1b639",
+  "slug": "example-ecg-beats",
+  "name": "Example ECG beat annotations",
+  "description": "Beat labels for an example ECG record.",
+  "created_by": 1,
+  "created_datetime": "2026-11-25T13:53:41.130996-05:00",
+  "updated_datetime": "2026-11-25T13:53:41.131037-05:00"
+}
+```
+
+`created_by` is the ID of the user who owns the token.
+
+### Create an annotation type
+
+```
+POST /api/annotations/type/create/
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `slug` | Yes | Unique identifier, used to refer to the type when creating annotations |
+| `name` | Yes | Name |
+| `description` | No | Description |
+| `label_schema` | Yes | [JSON Schema](https://json-schema.org/) that the `labels` of each annotation must match |
+| `allowed_location_type` | Yes | `timeseries_interval`, `image_bbox` or `text_span` |
+| `version` | No | Version of the type (default `1.0.0`) |
+
+Example:
+
+```
+curl -X POST https://physionet.org/api/annotations/type/create/ \
+  -H "Authorization: Bearer pnpat_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+        "slug": "example-beat-label",
+        "name": "Beat label",
+        "description": "Beat type for an ECG interval.",
+        "label_schema": {
+          "type": "object",
+          "properties": {"beat": {"type": "string", "enum": ["N", "V", "A"]}},
+          "required": ["beat"]
+        },
+        "allowed_location_type": "timeseries_interval",
+        "version": "1.0.0"
+      }'
+```
+
+```json
+{
+  "id": "1041221f-4017-42ed-b290-b8c6a66c6c49",
+  "slug": "example-beat-label",
+  "name": "Beat label",
+  "description": "Beat type for an ECG interval.",
+  "label_schema": {
+    "type": "object",
+    "properties": {"beat": {"type": "string", "enum": ["N", "V", "A"]}},
+    "required": ["beat"]
+  },
+  "allowed_location_type": "timeseries_interval",
+  "version": "1.0.0",
+  "created_datetime": "2026-11-25T13:53:41.441700-05:00"
+}
+```
+
+### Create an annotation
+
+```
+POST /api/annotations/collections/{collection_slug}/
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `annotation_type` | Yes | Slug of the annotation type |
+| `project` | Yes | Slug of the published project |
+| `file_path` | Yes | Path of the annotated file within the project |
+| `labels` | Yes | Labels, matching the type's `label_schema` |
+| `location` | Yes | Where the annotation is in the file (see [Location types](#location-types)). Its `location_type` must match the type's `allowed_location_type`. |
+
+Annotations can currently be created only for projects that have a single published version.
+
+Example:
+
+```
+curl -X POST https://physionet.org/api/annotations/collections/example-ecg-beats/ \
+  -H "Authorization: Bearer pnpat_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+        "annotation_type": "example-beat-label",
+        "project": "adfecgdb",
+        "file_path": "r01.edf",
+        "labels": {"beat": "N"},
+        "location": {"location_type": "timeseries_interval", "channel": "Direct_1", "start": 1000, "end": 1250}
+      }'
+```
+
+```json
+{
+  "id": "dddad541-162a-4219-b232-b2c6f4d89973",
+  "collection": "example-ecg-beats",
+  "annotation_type": "example-beat-label",
+  "project": "adfecgdb",
+  "file_path": "r01.edf",
+  "labels": {"beat": "N"},
+  "created_by": 1,
+  "created_datetime": "2026-11-25T13:53:41.728126-05:00",
+  "updated_datetime": "2026-11-25T13:53:41.728135-05:00",
+  "location": {
+    "id": "05e98f2f-4c34-4fcd-b725-baeecc263366",
+    "location_type": "timeseries_interval",
+    "coord_system": "samples",
+    "created_datetime": "2026-11-25T13:53:41.727055-05:00",
+    "channel": "Direct_1",
+    "start": 1000,
+    "end": 1250,
+    "created_by": 1
+  }
+}
+```
+
+### Location types
+
+Every location has a `location_type` and an optional `coord_system`, which describes the units of its coordinates. If `coord_system` is omitted, the default for the type is used.
+
+| `location_type` | Fields | Default `coord_system` |
+|---|---|---|
+| `timeseries_interval` | `start`, `end` (integers); `channel` (optional) | `samples` |
+| `image_bbox` | `x`, `y`, `width`, `height` (integers): top-left corner and size | `pixels` |
+| `text_span` | `begin`, `end` (integers); `encoding` (default `utf-8`) | `char_offset` |
+
+### Annotation errors
+
+| Status | When | Example body |
+|---|---|---|
+| `400 Bad Request` | `labels` don't match the type's `label_schema` | `{"non_field_errors": ["'X' is not one of ['N', 'V', 'A']"]}` |
+| `400 Bad Request` | `location_type` doesn't match the type's `allowed_location_type` | `{"non_field_errors": ["Location type must be 'timeseries_interval' ..."]}` |
+| `400 Bad Request` | The annotation type, collection or project doesn't exist | `{"annotation_type": ["Object with slug=no-such-type does not exist."]}` |
+| `401 Unauthorized` | No token | `{"detail": "Authentication credentials were not provided."}` |
+| `401 Unauthorized` | Invalid or expired token | `{"detail": "Invalid or expired token."}` |
+| `403 Forbidden` | The token doesn't have the required scope | `{"detail": "You do not have permission to perform this action."}` |
 
 ## Legacy endpoints
 
