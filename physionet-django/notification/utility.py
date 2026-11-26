@@ -1334,8 +1334,11 @@ def task_failed_notify(name, attempts, last_error, date_time, task_name, task_pa
     subject = name + " has failed"
     # This runs inside background_task's Task.reschedule(), before the task
     # is saved or deleted. If sending raised an error, the task would be
-    # stuck in the queue, so don't let email errors propagate.
-    mail_admins(subject, body, fail_silently=True)
+    # stuck in the queue, so log email errors instead of raising them.
+    try:
+        mail_admins(subject, body)
+    except Exception:
+        LOGGER.exception('Could not send task alert email: %s', subject)
 
 
 def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, task_params):
@@ -1356,8 +1359,11 @@ def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, ta
     subject = name + " has been rescheduled"
     # This runs inside background_task's Task.reschedule(), before the task
     # is saved or deleted. If sending raised an error, the task would be
-    # stuck in the queue, so don't let email errors propagate.
-    mail_admins(subject, body, fail_silently=True)
+    # stuck in the queue, so log email errors instead of raising them.
+    try:
+        mail_admins(subject, body)
+    except Exception:
+        LOGGER.exception('Could not send task alert email: %s', subject)
 
 
 def notify_account_registration(request, user, uidb64, token, activation_type):
